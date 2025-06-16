@@ -118,7 +118,25 @@
                         body: JSON.stringify(payload)
                     });
 
+                    // Parse the JSON result regardless of response.ok to check for API errors in the payload
                     const result = await response.json();
+
+                    // Check if the response itself was not successful (e.g., HTTP 401, 403, 500)
+                    if (!response.ok) {
+                        const errorMessage = result.error?.message || `HTTP Error: ${response.status} ${response.statusText}`;
+                        quoteDisplay.textContent = `API Error: ${errorMessage}. Please check your API key or request.`;
+                        console.error("Gemini API HTTP Error:", response.status, response.statusText, result);
+                        return; // Exit the function
+                    }
+
+                    // Check for an 'error' object within the successful JSON response (e.g., if API key is missing/invalid,
+                    // but the server still returns a 200 OK with an error payload)
+                    if (result.error) {
+                        const errorMessage = result.error.message || 'Unknown API error in payload.';
+                        quoteDisplay.textContent = `API Error: ${errorMessage}.`;
+                        console.error("Gemini API returned error payload:", result.error);
+                        return; // Exit the function
+                    }
 
                     if (result.candidates && result.candidates.length > 0 &&
                         result.candidates[0].content && result.candidates[0].content.parts &&
@@ -126,12 +144,14 @@
                         const text = result.candidates[0].content.parts[0].text;
                         quoteDisplay.textContent = text;
                     } else {
-                        quoteDisplay.textContent = "Failed to generate quote. Please try again.";
-                        console.error("Gemini API response structure unexpected:", result);
+                        // Log the full result object for inspection if content structure is unexpected
+                        quoteDisplay.textContent = "Failed to generate quote. Unexpected API response content.";
+                        console.error("Gemini API response content structure unexpected:", result);
                     }
                 } catch (error) {
-                    quoteDisplay.textContent = "Error generating quote. Please check your connection.";
-                    console.error("Error calling Gemini API:", error);
+                    // Log the full error object for network or parsing errors
+                    quoteDisplay.textContent = "Error generating quote. Please check your connection or console for details.";
+                    console.error("Error calling or parsing Gemini API response:", error);
                 } finally {
                     loadingIndicator.classList.add('hidden'); // Hide loading indicator
                     generateQuoteBtn.disabled = false; // Re-enable button
