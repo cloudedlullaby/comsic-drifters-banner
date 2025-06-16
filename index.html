@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -31,10 +31,10 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Keyframes for star twinkling */
+        /* Keyframes for more noticeable star twinkling */
         @keyframes twinkle {
-            0%, 100% { opacity: 0.7; }
-            50% { opacity: 0.3; }
+            0%, 100% { opacity: 0.9; } /* More visible at start/end */
+            50% { opacity: 0.1; }   /* Fades to a lower opacity */
         }
 
         .cosmic-banner {
@@ -74,7 +74,7 @@
             position: absolute;
             background-color: #fff;
             border-radius: 50%;
-            opacity: 0.7;
+            opacity: 0.9; /* Default high opacity */
             animation: twinkle 4s infinite ease-in-out; /* Twinkling animation */
         }
     </style>
@@ -126,6 +126,9 @@
 
             // --- Dynamic Starfield Generation ---
             function createStars(numStars) {
+                // Clear any existing stars before creating new ones on resize/re-render
+                cosmicBanner.querySelectorAll('.star').forEach(star => star.remove());
+
                 const bannerRect = cosmicBanner.getBoundingClientRect();
                 const bannerWidth = bannerRect.width;
                 const bannerHeight = bannerRect.height;
@@ -144,17 +147,26 @@
                     star.style.top = `${Math.random() * 100}%`;
 
                     // Random animation delay for varied twinkling
-                    star.style.animationDelay = `${Math.random() * 4}s`;
+                    star.style.animationDelay = `${Math.random() * 4}s`; // Vary delay for more randomness
 
                     cosmicBanner.appendChild(star);
                 }
             }
 
-            // Generate a good number of stars for the banner area
-            // Call this after the banner has rendered to get its dimensions
-            setTimeout(() => {
-                createStars(100); // You can adjust the number of stars here
-            }, 100); // Small delay to ensure layout is calculated
+            // Function to handle window resize and recreate stars
+            function handleResize() {
+                // Only recreate stars if the banner is visible and has dimensions
+                if (cosmicBanner.offsetWidth > 0 && cosmicBanner.offsetHeight > 0) {
+                    createStars(200); // Increased number of stars for more density
+                }
+            }
+
+            // Generate stars on initial load
+            setTimeout(handleResize, 100); // Small delay to ensure layout is calculated
+
+            // Re-generate stars on window resize to maintain density
+            window.addEventListener('resize', handleResize);
+
 
             // --- Gemini API Call for Quotes ---
             generateQuoteBtn.addEventListener('click', async () => {
