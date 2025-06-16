@@ -54,15 +54,16 @@
             justify-content: center;
             padding: 1rem; /* Added padding to ensure banner has some space */
 
-            /* Animated Nebula Background */
-            background: 
-                radial-gradient(circle at 10% 20%, rgba(29, 0, 48, 0.8) 0%, transparent 40%),
-                radial-gradient(circle at 80% 90%, rgba(68, 0, 112, 0.8) 0%, transparent 40%),
-                radial-gradient(circle at 50% 10%, rgba(138, 43, 226, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 30% 70%, rgba(50, 20, 100, 0.7) 0%, transparent 50%),
-                #0a011a; /* Base dark color */
-            background-size: 300% 300%; /* Larger background for animation effect */
-            animation: nebula-move 60s ease infinite alternate; /* Slower, subtle animation */
+            /* Animated Nebula Background - Made even more prominent */
+            background:
+                radial-gradient(circle at 10% 20%, rgba(150, 50, 200, 0.9) 0%, transparent 45%), /* Brighter purple cloud */
+                radial-gradient(circle at 80% 90%, rgba(50, 30, 150, 0.9) 0%, transparent 45%), /* Deeper blue cloud */
+                radial-gradient(circle at 45% 15%, rgba(200, 80, 255, 0.6) 0%, transparent 60%), /* Lighter, more ethereal purple */
+                radial-gradient(circle at 25% 65%, rgba(40, 80, 180, 0.8) 0%, transparent 45%), /* Clearer blue cloud */
+                radial-gradient(circle at 75% 35%, rgba(255, 120, 220, 0.4) 0%, transparent 60%), /* Pink/magenta swirl */
+                #050010; /* Very dark base color */
+            background-size: 350% 350%; /* Increased size for more movement */
+            animation: nebula-move 70s ease infinite alternate; /* Slightly slower for grander feel */
             overflow: hidden; /* Prevent scrollbars from background movement */
         }
 
