@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Drifters Banner</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom font for "Orbitron" to give a futuristic/sci-fi feel */
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Keyframes for subtle background animation */
+        @keyframes starry-background {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .cosmic-banner {
+            /* Using a combination of radial and linear gradients for a space effect */
+            background: radial-gradient(circle at top left, #2c0b4e 0%, transparent 70%),
+                        radial-gradient(circle at bottom right, #1a0636 0%, transparent 70%),
+                        linear-gradient(to right, #0a011a, #1c004a, #0a011a);
+            background-size: 200% 200%; /* Make background larger for animation */
+            animation: starry-background 30s ease infinite; /* Subtle animation */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* Deep shadow for depth */
+        }
+
+        /* Text glow effect */
+        .text-glow {
+            text-shadow: 0 0 8px #93c5fd, 0 0 15px #bfdbfe, 0 0 25px #dbeafe; /* Light blue glow */
+        }
+
+        /* Custom button styling */
+        .btn-cosmic {
+            background-image: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px 0 rgba(49, 196, 190, 0.75);
+        }
+        .btn-cosmic:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px 0 rgba(49, 196, 190, 0.9);
+        }
+        .btn-cosmic:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px 0 rgba(49, 196, 190, 0.5);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-900 p-4 font-inter">
+
+    <div class="cosmic-banner
+                w-full max-w-4xl h-auto py-8
+                rounded-xl flex flex-col items-center justify-center
+                relative overflow-hidden
+                border-2 border-indigo-700
+                text-white text-center
+                space-y-6"> <!-- Added space-y for spacing between elements -->
+
+        <!-- Optional: Subtle star elements (can be generated with JS for more complexity) -->
+        <div class="absolute w-2 h-2 bg-white rounded-full opacity-70 animate-pulse" style="top: 10%; left: 15%;"></div>
+        <div class="absolute w-1 h-1 bg-yellow-300 rounded-full opacity-60 animate-pulse delay-100" style="bottom: 20%; right: 25%;"></div>
+        <div class="absolute w-1.5 h-1.5 bg-blue-300 rounded-full opacity-80 animate-pulse delay-200" style="top: 30%; right: 10%;"></div>
+
+        <h1 class="font-orbitron text-5xl sm:text-6xl md:text-7xl lg:text-8xl
+                   font-extrabold tracking-wide
+                   text-glow z-10">
+            Cosmic Drifters
+        </h1>
+
+        <!-- Feature 1: Generate Cosmic Quote using Gemini API -->
+        <div class="z-10 flex flex-col items-center space-y-4 px-4 w-full">
+            <button id="generateQuoteBtn"
+                    class="btn-cosmic
+                           px-6 py-3 rounded-full text-lg font-bold
+                           text-white border-none cursor-pointer
+                           hover:shadow-lg focus:outline-none">
+                ✨ Generate Cosmic Quote ✨
+            </button>
+            <p id="quoteDisplay"
+               class="text-md sm:text-lg italic text-gray-200
+                      max-w-prose leading-relaxed">
+                <!-- Quote will be displayed here -->
+            </p>
+            <div id="loadingIndicator" class="hidden text-blue-300 text-sm">
+                Generating an interstellar message...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const generateQuoteBtn = document.getElementById('generateQuoteBtn');
+            const quoteDisplay = document.getElementById('quoteDisplay');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+
+            generateQuoteBtn.addEventListener('click', async () => {
+                quoteDisplay.textContent = ''; // Clear previous quote
+                loadingIndicator.classList.remove('hidden'); // Show loading indicator
+                generateQuoteBtn.disabled = true; // Disable button during generation
+
+                try {
+                    let chatHistory = [];
+                    const prompt = "Generate a short, inspiring quote about space, stars, exploration, or the cosmos. Make it poetic and philosophical. Do not include who said the quote.";
+                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                    const payload = { contents: chatHistory };
+                    const apiKey = ""; // Canvas will automatically provide the API key
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        quoteDisplay.textContent = text;
+                    } else {
+                        quoteDisplay.textContent = "Failed to generate quote. Please try again.";
+                        console.error("Gemini API response structure unexpected:", result);
+                    }
+                } catch (error) {
+                    quoteDisplay.textContent = "Error generating quote. Please check your connection.";
+                    console.error("Error calling Gemini API:", error);
+                } finally {
+                    loadingIndicator.classList.add('hidden'); // Hide loading indicator
+                    generateQuoteBtn.disabled = false; // Re-enable button
+                }
+            });
+        });
+    </script>
+</body>
+</html>
