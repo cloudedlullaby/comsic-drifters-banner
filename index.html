@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cosmic Drifters Banner</title>
+    <title>Cosmic Drifters</title>
 
     <!-- Open Graph Meta Tags for Discord/Social Media Previews -->
-    <!-- IMPORTANT: Update these values for your specific banner and image -->
     <meta property="og:title" content="Cosmic Drifters: Your Journey Through the Stars" />
-    <meta property="og:description" content="Embark on an interstellar adventure! Discover inspiring cosmic quotes with our interactive banner." />
+    <meta property="og:description" content="Embark on an interstellar adventure! Discover inspiring cosmic quotes and get random game suggestions for your Discord group." />
     <meta property="og:image" content="https://cloudedlullaby.github.io/comsic-drifters-banner/banner-preview.png" />
     <meta property="og:url" content="https://cloudedlullaby.github.io/comsic-drifters-banner/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Cosmic Drifters" />
-    <meta name="theme-color" content="#1c004a"> <!-- Sets the color of the embed sidebar in Discord -->
+    <meta name="theme-color" content="#1c004a">
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -33,8 +32,8 @@
 
         /* Keyframes for more noticeable star twinkling */
         @keyframes twinkle {
-            0%, 100% { opacity: 0.9; } /* More visible at start/end */
-            50% { opacity: 0.1; }   /* Fades to a lower opacity */
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 0.1; }
         }
 
         /* Keyframes for animated nebula background (for the body) */
@@ -48,47 +47,68 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            min-height: 100vh; /* Ensure body takes full viewport height */
+            min-height: 100vh;
             display: flex;
+            flex-direction: column; /* Changed to column to stack header/nav above content */
             align-items: center;
-            justify-content: center;
-            padding: 1rem; /* Added padding to ensure banner has some space */
-
-            /* Animated Nebula Background - Made vivid and more cloud-like */
+            justify-content: flex-start; /* Align content to top initially */
+            padding: 1rem;
             background:
-                /* Central bright core - similar to the image's center */
                 radial-gradient(circle at 50% 50%, rgba(255, 200, 100, 0.9) 0%, rgba(255, 100, 0, 0.8) 15%, transparent 35%),
-                /* Prominent reddish-orange cloud, top-left */
                 radial-gradient(circle at 20% 30%, rgba(200, 50, 0, 0.8) 0%, transparent 40%),
-                /* Deep purple cloud, lower-right */
                 radial-gradient(circle at 80% 70%, rgba(100, 0, 150, 0.9) 0%, transparent 40%),
-                /* Bright blue gas, bottom-left */
                 radial-gradient(circle at 10% 85%, rgba(0, 100, 255, 0.7) 0%, transparent 45%),
-                /* Faint larger pinkish/magenta swirl, top-right */
                 radial-gradient(circle at 75% 15%, rgba(255, 50, 200, 0.5) 0%, transparent 55%),
-                /* More subtle bluish haze */
                 radial-gradient(circle at 40% 60%, rgba(0, 50, 100, 0.6) 0%, transparent 50%),
-                #000003; /* Very very dark base color for ultimate contrast */
-            background-size: 500% 500%; /* Even larger size for broader, slower movement */
-            animation: nebula-move 100s ease infinite alternate; /* Very slow, grand animation */
-            overflow: hidden; /* Prevent scrollbars from background movement */
+                #000003;
+            background-size: 500% 500%;
+            animation: nebula-move 100s ease infinite alternate;
+            overflow: hidden;
+            position: relative; /* For the nebula background to fill */
         }
 
-        .cosmic-banner {
-            /* Using a combination of radial and linear gradients for a space effect */
+        /* Style for the main content area (where banner/explorer will be displayed) */
+        .content-area {
+            width: 100%;
+            max-width: 4xl;
+            flex-grow: 1; /* Allows it to expand and push footer down if needed */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative; /* For internal positioning */
+        }
+
+        .cosmic-banner, .cosmic-section {
+            width: 100%;
+            border: 2px solid #6a11cb;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            color: white;
+            text-align: center;
+            padding: 2rem; /* Consistent padding */
+            border-radius: 1rem; /* Consistent border radius */
             background: radial-gradient(circle at top left, #2c0b4e 0%, transparent 70%),
                         radial-gradient(circle at bottom right, #1a0636 0%, transparent 70%),
                         linear-gradient(to right, #0a011a, #1c004a, #0a011a);
-            background-size: 200% 200%; /* Make background larger for animation */
-            animation: starry-background 30s ease infinite; /* Subtle animation */
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* Deep shadow for depth */
-            position: relative; /* Needed for absolute positioning of stars */
-            overflow: hidden; /* Ensure stars don't overflow */
+            background-size: 200% 200%;
+            animation: starry-background 30s ease infinite;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 480px; /* Ensure sections have a decent height */
         }
+
+        .cosmic-section {
+            display: none; /* Hidden by default */
+        }
+
 
         /* Text glow effect */
         .text-glow {
-            text-shadow: 0 0 8px #93c5fd, 0 0 15px #bfdbfe, 0 0 25px #dbeafe; /* Light blue glow */
+            text-shadow: 0 0 8px #93c5fd, 0 0 15px #bfdbfe, 0 0 25px #dbeafe;
         }
 
         /* Custom button styling */
@@ -106,50 +126,100 @@
             box-shadow: 0 2px 10px 0 rgba(49, 196, 190, 0.5);
         }
 
+        /* Navigation button styling */
+        .nav-btn {
+            background-color: #3b0764; /* Dark purple */
+            color: #e0e7ff; /* Light text */
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px; /* Fully rounded */
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .nav-btn:hover {
+            background-color: #4c0a80; /* Slightly lighter purple on hover */
+            transform: translateY(-1px);
+        }
+
+        .nav-btn.active {
+            background-image: linear-gradient(to right, #6a11cb 0%, #2575fc 100%); /* Gradient for active tab */
+            box-shadow: 0 4px 15px 0 rgba(49, 196, 190, 0.75);
+            border-color: #a78bfa; /* Light purple border for active */
+        }
+
         /* Styling for dynamically created stars */
         .star {
             position: absolute;
             background-color: #fff;
             border-radius: 50%;
-            opacity: 0.9; /* Default high opacity */
-            animation: twinkle 4s infinite ease-in-out; /* Twinkling animation */
+            opacity: 0.9;
+            animation: twinkle 4s infinite ease-in-out;
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4 font-inter">
+<body class="p-4">
 
-    <div id="cosmicBanner" class="cosmic-banner
-                w-full max-w-4xl h-auto py-8
-                rounded-xl flex flex-col items-center justify-center
-                relative overflow-hidden
-                border-2 border-indigo-700
-                text-white text-center
-                space-y-6"> <!-- Added space-y for spacing between elements -->
+    <!-- Navigation Bar -->
+    <nav class="w-full max-w-4xl flex justify-center space-x-4 mb-8">
+        <button id="homeTabBtn" class="nav-btn active">Home</button>
+        <button id="gameSuggestorTabBtn" class="nav-btn">Game Suggestor</button>
+    </nav>
 
-        <!-- Dynamic stars will be appended here by JavaScript -->
+    <!-- Main Content Area -->
+    <div class="content-area">
+        <!-- Tab 1: Cosmic Drifters Banner -->
+        <div id="cosmicBanner" class="cosmic-banner">
+            <!-- Dynamic stars will be appended here by JavaScript -->
 
-        <h1 class="font-orbitron text-5xl sm:text-6xl md:text-7xl lg:text-8xl
-                   font-extrabold tracking-wide
-                   text-glow z-10">
-            Cosmic Drifters
-        </h1>
+            <h1 class="font-orbitron text-5xl sm:text-6xl md:text-7xl lg:text-8xl
+                       font-extrabold tracking-wide
+                       text-glow z-10 mb-6">
+                Cosmic Drifters
+            </h1>
 
-        <!-- Feature 1: Generate Cosmic Quote using Gemini API -->
-        <div class="z-10 flex flex-col items-center space-y-4 px-4 w-full">
-            <button id="generateQuoteBtn"
-                    class="btn-cosmic
-                           px-6 py-3 rounded-full text-lg font-bold
-                           text-white border-none cursor-pointer
-                           hover:shadow-lg focus:outline-none">
-                ✨ Generate Cosmic Quote ✨
-            </button>
-            <p id="quoteDisplay"
-               class="text-md sm:text-lg italic text-gray-200
-                      max-w-prose leading-relaxed">
-                <!-- Quote will be displayed here -->
-            </p>
-            <div id="loadingIndicator" class="hidden text-blue-300 text-sm">
-                Generating an interstellar message...
+            <div class="z-10 flex flex-col items-center space-y-4 px-4 w-full">
+                <button id="generateQuoteBtn"
+                        class="btn-cosmic
+                               px-6 py-3 rounded-full text-lg font-bold
+                               text-white border-none cursor-pointer
+                               hover:shadow-lg focus:outline-none">
+                    ✨ Generate Cosmic Quote ✨
+                </button>
+                <p id="quoteDisplay"
+                   class="text-md sm:text-lg italic text-gray-200
+                          max-w-prose leading-relaxed">
+                    <!-- Quote will be displayed here -->
+                </p>
+                <div id="loadingIndicator" class="hidden text-blue-300 text-sm">
+                    Generating an interstellar message...
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Game Suggestor Section -->
+        <div id="gameSuggestorSection" class="cosmic-section">
+            <h2 class="font-orbitron text-4xl sm:text-5xl font-extrabold text-glow mb-8">
+                Your Next Cosmic Gaming Adventure
+            </h2>
+
+            <div class="z-10 flex flex-col items-center space-y-4 px-4 w-full max-w-lg">
+                <button id="suggestGameBtn"
+                        class="btn-cosmic
+                               px-6 py-3 rounded-full text-lg font-bold
+                               text-white border-none cursor-pointer
+                               hover:shadow-lg focus:outline-none">
+                    🚀 Suggest Game / Challenge 🎮
+                </button>
+                <p id="gameSuggestionDisplay"
+                   class="text-md sm:text-lg text-gray-200
+                          max-w-prose leading-relaxed mt-4 text-justify">
+                    Click the button to get a random game or activity suggestion for your group!
+                </p>
+                <div id="gameSuggestionLoadingIndicator" class="hidden text-blue-300 text-sm">
+                    Consulting the Galactic Game Library...
+                </div>
             </div>
         </div>
     </div>
@@ -157,59 +227,93 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const cosmicBanner = document.getElementById('cosmicBanner');
+            const gameSuggestorSection = document.getElementById('gameSuggestorSection'); // Renamed
+            const homeTabBtn = document.getElementById('homeTabBtn');
+            const gameSuggestorTabBtn = document.getElementById('gameSuggestorTabBtn'); // Renamed
+
             const generateQuoteBtn = document.getElementById('generateQuoteBtn');
             const quoteDisplay = document.getElementById('quoteDisplay');
             const loadingIndicator = document.getElementById('loadingIndicator');
 
-            // --- Dynamic Starfield Generation ---
+            const suggestGameBtn = document.getElementById('suggestGameBtn'); // Renamed
+            const gameSuggestionDisplay = document.getElementById('gameSuggestionDisplay'); // Renamed
+            const gameSuggestionLoadingIndicator = document.getElementById('gameSuggestionLoadingIndicator'); // Renamed
+
+            const API_KEY = "AIzaSyC-dK0r0zIiHrU1L6whT_7uZ1zHLnP6w34"; // Your API key
+
+            // --- Tab Switching Logic ---
+            function showTab(tabId) {
+                // Hide all sections
+                cosmicBanner.style.display = 'none';
+                gameSuggestorSection.style.display = 'none'; // Renamed
+
+                // Deactivate all nav buttons
+                homeTabBtn.classList.remove('active');
+                gameSuggestorTabBtn.classList.remove('active'); // Renamed
+
+                // Show the selected tab and activate its button
+                if (tabId === 'home') {
+                    cosmicBanner.style.display = 'flex';
+                    homeTabBtn.classList.add('active');
+                    // Re-create stars if returning to home, in case of resize or initial load
+                    if (cosmicBanner.offsetWidth > 0 && cosmicBanner.offsetHeight > 0) {
+                        createStars(200);
+                    }
+                } else if (tabId === 'gameSuggestor') { // Updated tabId
+                    gameSuggestorSection.style.display = 'flex'; // Renamed
+                    gameSuggestorTabBtn.classList.add('active'); // Renamed
+                }
+            }
+
+            // Set initial tab to home
+            showTab('home');
+
+            // Add event listeners for tab buttons
+            homeTabBtn.addEventListener('click', () => showTab('home'));
+            gameSuggestorTabBtn.addEventListener('click', () => showTab('gameSuggestor')); // Renamed and updated tabId
+
+
+            // --- Dynamic Starfield Generation (for cosmicBanner only) ---
             function createStars(numStars) {
-                // Clear any existing stars before creating new ones on resize/re-render
-                cosmicBanner.querySelectorAll('.star').forEach(star => star.remove());
+                cosmicBanner.querySelectorAll('.star').forEach(star => star.remove()); // Clear existing stars
 
                 const bannerRect = cosmicBanner.getBoundingClientRect();
                 const bannerWidth = bannerRect.width;
                 const bannerHeight = bannerRect.height;
 
+                // Ensure banner has dimensions before creating stars
+                if (bannerWidth === 0 || bannerHeight === 0) {
+                    // If banner is hidden or has no size, wait and retry
+                    setTimeout(() => createStars(numStars), 200);
+                    return;
+                }
+
                 for (let i = 0; i < numStars; i++) {
                     const star = document.createElement('div');
                     star.classList.add('star');
-
-                    // Random size for stars (1px to 3px)
                     const size = Math.random() * 2 + 1;
                     star.style.width = `${size}px`;
                     star.style.height = `${size}px`;
-
-                    // Random position within the banner
                     star.style.left = `${Math.random() * 100}%`;
                     star.style.top = `${Math.random() * 100}%`;
-
-                    // Random animation delay for varied twinkling
-                    star.style.animationDelay = `${Math.random() * 4}s`; // Vary delay for more randomness
-
+                    star.style.animationDelay = `${Math.random() * 4}s`;
                     cosmicBanner.appendChild(star);
                 }
             }
 
-            // Function to handle window resize and recreate stars
-            function handleResize() {
-                // Only recreate stars if the banner is visible and has dimensions
-                if (cosmicBanner.offsetWidth > 0 && cosmicBanner.offsetHeight > 0) {
-                    createStars(200); // Increased number of stars for more density
+            // Re-generate stars on window resize to maintain density on the banner
+            window.addEventListener('resize', () => {
+                if (cosmicBanner.style.display === 'flex') { // Only recreate if banner is visible
+                    createStars(200);
                 }
-            }
-
-            // Generate stars on initial load
-            setTimeout(handleResize, 100); // Small delay to ensure layout is calculated
-
-            // Re-generate stars on window resize to maintain density
-            window.addEventListener('resize', handleResize);
+            });
 
 
-            // --- Gemini API Call for Quotes ---
+            // --- Gemini API Call for Cosmic Quotes ---
             generateQuoteBtn.addEventListener('click', async () => {
-                quoteDisplay.textContent = ''; // Clear previous quote
-                loadingIndicator.classList.remove('hidden'); // Show loading indicator
-                generateQuoteBtn.disabled = true; // Disable button during generation
+                quoteDisplay.textContent = '';
+                loadingIndicator.classList.remove('hidden');
+                generateQuoteBtn.disabled = true;
 
                 try {
                     let chatHistory = [];
@@ -217,8 +321,7 @@
                     chatHistory.push({ role: "user", parts: [{ text: prompt }] });
 
                     const payload = { contents: chatHistory };
-                    const apiKey = "AIzaSyC-dK0r0zIiHrU1L6whT_7uZ1zHLnP6w34"; // API key has been added here
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
 
                     const response = await fetch(apiUrl, {
                         method: 'POST',
@@ -226,24 +329,20 @@
                         body: JSON.stringify(payload)
                     });
 
-                    // Parse the JSON result regardless of response.ok to check for API errors in the payload
                     const result = await response.json();
 
-                    // Check if the response itself was not successful (e.g., HTTP 401, 403, 500)
                     if (!response.ok) {
                         const errorMessage = result.error?.message || `HTTP Error: ${response.status} ${response.statusText}`;
                         quoteDisplay.textContent = `API Error: ${errorMessage}. Please check your API key or request.`;
                         console.error("Gemini API HTTP Error:", response.status, response.statusText, result);
-                        return; // Exit the function
+                        return;
                     }
 
-                    // Check for an 'error' object within the successful JSON response (e.g., if API key is missing/invalid,
-                    // but the server still returns a 200 OK with an error payload)
                     if (result.error) {
                         const errorMessage = result.error.message || 'Unknown API error in payload.';
                         quoteDisplay.textContent = `API Error: ${errorMessage}.`;
                         console.error("Gemini API returned error payload:", result.error);
-                        return; // Exit the function
+                        return;
                     }
 
                     if (result.candidates && result.candidates.length > 0 &&
@@ -252,17 +351,70 @@
                         const text = result.candidates[0].content.parts[0].text;
                         quoteDisplay.textContent = text;
                     } else {
-                        // Log the full result object for inspection if content structure is unexpected
                         quoteDisplay.textContent = "Failed to generate quote. Unexpected API response content.";
                         console.error("Gemini API response content structure unexpected:", result);
                     }
                 } catch (error) {
-                    // Log the full error object for network or parsing errors
                     quoteDisplay.textContent = "Error generating quote. Please check your connection or console for details.";
                     console.error("Error calling or parsing Gemini API response:", error);
                 } finally {
-                    loadingIndicator.classList.add('hidden'); // Hide loading indicator
-                    generateQuoteBtn.disabled = false; // Re-enable button
+                    loadingIndicator.classList.add('hidden');
+                    generateQuoteBtn.disabled = false;
+                }
+            });
+
+
+            // --- Gemini API Call for Game Suggestion ---
+            suggestGameBtn.addEventListener('click', async () => { // Renamed listener
+                gameSuggestionDisplay.textContent = ''; // Renamed display element
+                gameSuggestionLoadingIndicator.classList.remove('hidden'); // Renamed loading indicator
+                suggestGameBtn.disabled = true; // Renamed button
+
+                try {
+                    let chatHistory = [];
+                    const prompt = `Suggest a fun game or a creative in-game challenge suitable for a small, cozy gaming Discord group. Make the suggestion concise and engaging, like: "Your next mission: [Game/Challenge]!" or "Tonight's pick: [Game/Activity] - [Brief Fun Description]."`;
+                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                    const payload = { contents: chatHistory };
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        const errorMessage = result.error?.message || `HTTP Error: ${response.status} ${response.statusText}`;
+                        gameSuggestionDisplay.textContent = `API Error: ${errorMessage}. Please check your API key or request.`;
+                        console.error("Gemini API HTTP Error:", response.status, response.statusText, result);
+                        return;
+                    }
+
+                    if (result.error) {
+                        const errorMessage = result.error.message || 'Unknown API error in payload.';
+                        gameSuggestionDisplay.textContent = `API Error: ${errorMessage}.`;
+                        console.error("Gemini API returned error payload:", result.error);
+                        return;
+                    }
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        gameSuggestionDisplay.textContent = text; // Renamed display element
+                    } else {
+                        gameSuggestionDisplay.textContent = "Failed to generate suggestion. Unexpected API response content.";
+                        console.error("Gemini API response content structure unexpected:", result);
+                    }
+                } catch (error) {
+                    gameSuggestionDisplay.textContent = "Error generating suggestion. Please check your connection or console for details.";
+                    console.error("Error calling or parsing Gemini API response for game suggestion:", error);
+                } finally {
+                    gameSuggestionLoadingIndicator.classList.add('hidden'); // Renamed loading indicator
+                    suggestGameBtn.disabled = false; // Renamed button
                 }
             });
         });
