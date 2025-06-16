@@ -24,7 +24,7 @@
             font-family: 'Orbitron', sans-serif;
         }
 
-        /* Keyframes for subtle background animation */
+        /* Keyframes for subtle background animation (for the banner itself) */
         @keyframes starry-background {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -35,6 +35,35 @@
         @keyframes twinkle {
             0%, 100% { opacity: 0.9; } /* More visible at start/end */
             50% { opacity: 0.1; }   /* Fades to a lower opacity */
+        }
+
+        /* Keyframes for animated nebula background (for the body) */
+        @keyframes nebula-move {
+            0% { background-position: 0% 0%; }
+            25% { background-position: 50% 50%; }
+            50% { background-position: 100% 0%; }
+            75% { background-position: 50% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh; /* Ensure body takes full viewport height */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem; /* Added padding to ensure banner has some space */
+
+            /* Animated Nebula Background */
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(29, 0, 48, 0.8) 0%, transparent 40%),
+                radial-gradient(circle at 80% 90%, rgba(68, 0, 112, 0.8) 0%, transparent 40%),
+                radial-gradient(circle at 50% 10%, rgba(138, 43, 226, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 30% 70%, rgba(50, 20, 100, 0.7) 0%, transparent 50%),
+                #0a011a; /* Base dark color */
+            background-size: 300% 300%; /* Larger background for animation effect */
+            animation: nebula-move 60s ease infinite alternate; /* Slower, subtle animation */
+            overflow: hidden; /* Prevent scrollbars from background movement */
         }
 
         .cosmic-banner {
@@ -79,7 +108,7 @@
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen bg-gray-900 p-4 font-inter">
+<body class="flex items-center justify-center min-h-screen p-4 font-inter">
 
     <div id="cosmicBanner" class="cosmic-banner
                 w-full max-w-4xl h-auto py-8
