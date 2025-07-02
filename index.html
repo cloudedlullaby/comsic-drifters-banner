@@ -193,239 +193,103 @@
     </style>
 </head>
 <body class="p-4">
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, updateDoc, doc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // Global variables (will be initialized in JS below)
-        window.fbApp = null;
-        window.db = null;
-        window.auth = null;
-        window.currentUserId = null;
-        window.isAuthReady = false; // Flag to indicate Firebase auth is ready
-
-        // Firebase Configuration (Canvas will provide these)
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        // Initialize Firebase and Authenticate
-        async function initializeFirebase() {
-            try {
-                if (!window.fbApp) {
-                    window.fbApp = initializeApp(firebaseConfig);
-                    window.db = getFirestore(window.fbApp);
-                    window.auth = getAuth(window.fbApp);
-
-                    onAuthStateChanged(window.auth, async (user) => {
-                        if (user) {
-                            window.currentUserId = user.uid;
-                            console.log("Firebase: Authenticated as user:", window.currentUserId);
-                        } else {
-                            // If no user, sign in anonymously
-                            try {
-                                if (initialAuthToken) {
-                                    await signInWithCustomToken(window.auth, initialAuthToken);
-                                } else {
-                                    await signInAnonymously(window.auth);
-                                }
-                                window.currentUserId = window.auth.currentUser.uid;
-                                console.log("Firebase: Signed in anonymously as user:", window.currentUserId);
-                            } catch (error) {
-                                console.error("Firebase Auth Error:", error);
-                                // Fallback if anonymous sign-in fails (e.g., no network)
-                                window.currentUserId = crypto.randomUUID();
-                                console.warn("Firebase: Anonymous sign-in failed, using random UUID:", window.currentUserId);
-                            }
-                        }
-                        window.isAuthReady = true;
-                        document.getElementById('userIdDisplay').textContent = `User ID: ${window.currentUserId}`;
-                        console.log("Firebase: Auth state changed. isAuthReady:", window.isAuthReady);
-                        // Trigger initial data load if needed after auth is ready
-                        // This will be handled by the DOMContentLoaded listener for vents
-                    });
-                }
-            } catch (error) {
-                console.error("Failed to initialize Firebase:", error);
-            }
-        }
-
-        initializeFirebase();
-    </script>
-
-
-    <!-- Navigation Bar -->
-    <nav class="w-full max-w-4xl flex justify-center space-x-4 mb-8">
-        <button id="homeTabBtn" class="nav-btn active">Home</button>
-        <button id="gameSuggestorTabBtn" class="nav-btn">Game Suggestor</button>
-        <button id="ventingTabBtn" class="nav-btn">Venting & Support</button>
-    </nav>
-
-    <!-- User ID Display (for debugging/multi-user identification as per Canvas guidelines) -->
-    <div class="w-full max-w-4xl text-right text-xs text-gray-400 mb-4">
-        <span id="userIdDisplay">User ID: Loading...</span>
-    </div>
-
-    <!-- Main Content Area -->
     <div class="content-area">
-        <!-- Tab 1: Cosmic Drifters Banner -->
-        <div id="cosmicBanner" class="cosmic-banner">
-            <!-- Dynamic stars will be appended here by JavaScript -->
+        <!-- Navigation Buttons -->
+        <nav class="flex space-x-4 mb-8">
+            <button id="homeTabBtn" class="nav-btn active">Home</button>
+            <button id="gameSuggestorTabBtn" class="nav-btn">Game Suggestor</button>
+            <button id="ventingTabBtn" class="nav-btn">Venting & Support</button>
+        </nav>
 
-            <h1 class="font-orbitron text-5xl sm:text-6xl md:text-7xl lg:text-8xl
-                       font-extrabold tracking-wide
-                       text-glow z-10 mb-6">
-                Cosmic Drifters
-            </h1>
+        <!-- User ID Display -->
+        <div id="userIdDisplay" class="text-white text-sm mb-4">User ID: Loading...</div>
 
-            <div class="z-10 flex flex-col items-center space-y-4 px-4 w-full">
-                <button id="generateQuoteBtn"
-                        class="btn-cosmic
-                               px-6 py-3 rounded-full text-lg font-bold
-                               text-white border-none cursor-pointer
-                               hover:shadow-lg focus:outline-none">
-                    ✨ Generate Cosmic Quote ✨
-                </button>
-                <p id="quoteDisplay"
-                   class="text-md sm:text-lg italic text-gray-200
-                          max-w-prose leading-relaxed">
-                    <!-- Quote will be displayed here -->
-                </p>
-                <div id="loadingIndicator" class="hidden text-blue-300 text-sm">
-                    Generating an interstellar message...
-                </div>
+        <!-- Home Section (Cosmic Banner) -->
+        <section id="cosmicBanner" class="cosmic-banner flex flex-col items-center justify-center space-y-6">
+            <h1 class="text-5xl font-orbitron text-glow">Cosmic Drifters</h1>
+            <p class="text-xl text-gray-300">Your Journey Through the Stars</p>
+            <div class="quote-container mt-4 p-4 border border-purple-500 rounded-lg bg-purple-900 bg-opacity-50 max-w-lg mx-auto">
+                <p id="quoteDisplay" class="text-lg italic text-gray-200">"The universe is not only stranger than we imagine, it is stranger than we can imagine."</p>
+                <div id="loadingIndicator" class="hidden text-center text-blue-300 mt-2">Loading...</div>
             </div>
-        </div>
+            <button id="generateQuoteBtn" class="btn-cosmic text-white font-bold py-3 px-6 rounded-full text-lg">
+                Generate New Cosmic Quote
+            </button>
+        </section>
 
-        <!-- Tab 2: Game Suggestor Section -->
-        <div id="gameSuggestorSection" class="cosmic-section">
-            <h2 class="font-orbitron text-4xl sm:text-5xl font-extrabold text-glow mb-8">
-                Your Next Cosmic Gaming Adventure
-            </h2>
-
-            <div class="z-10 flex flex-col items-center space-y-4 px-4 w-full max-w-lg">
-                <button id="suggestGameBtn"
-                        class="btn-cosmic
-                               px-6 py-3 rounded-full text-lg font-bold
-                               text-white border-none cursor-pointer
-                               hover:shadow-lg focus:outline-none">
-                    🚀 Suggest Game / Challenge 🎮
-                </button>
-                <p id="gameSuggestionDisplay"
-                   class="text-md sm:text-lg text-gray-200
-                          max-w-prose leading-relaxed mt-4 text-justify">
-                    Click the button to get a random game or activity suggestion for your group!
-                </p>
-                <div id="gameSuggestionLoadingIndicator" class="hidden text-blue-300 text-sm">
-                    Consulting the Galactic Game Library...
-                </div>
+        <!-- Game Suggestor Section -->
+        <section id="gameSuggestorSection" class="cosmic-section flex-col items-center justify-center space-y-6">
+            <h2 class="text-4xl font-orbitron text-glow mb-4">Game Suggestor</h2>
+            <div class="suggestion-container mt-4 p-4 border border-blue-500 rounded-lg bg-blue-900 bg-opacity-50 max-w-lg mx-auto">
+                <p id="gameSuggestionDisplay" class="text-lg italic text-gray-200">Click below for a game suggestion!</p>
+                <div id="gameSuggestionLoadingIndicator" class="hidden text-center text-blue-300 mt-2">Loading...</div>
             </div>
-        </div>
+            <button id="suggestGameBtn" class="btn-cosmic text-white font-bold py-3 px-6 rounded-full text-lg">
+                Suggest a Game
+            </button>
+        </section>
 
-        <!-- Tab 3: Venting & Support System -->
-        <div id="ventingSystemSection" class="cosmic-section">
-            <h2 class="font-orbitron text-4xl sm:text-5xl font-extrabold text-glow mb-8">
-                Vent Your Cosmic Woes
-            </h2>
+        <!-- Venting & Support Section -->
+        <section id="ventingSystemSection" class="cosmic-section flex-col items-center justify-center space-y-6">
+            <h2 class="text-4xl font-orbitron text-glow mb-4">Vent Your Cosmic Woes</h2>
+            <textarea id="ventInput" class="w-full max-w-md p-3 rounded-lg bg-gray-800 text-white border border-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-400" rows="4" placeholder="Share what's on your mind..."></textarea>
+            <button id="postVentBtn" class="btn-cosmic text-white font-bold py-3 px-6 rounded-full text-lg">
+                Post Anonymously
+            </button>
+            <div id="ventPostLoading" class="hidden text-center text-blue-300 mt-2">Posting...</div>
+            <div id="ventPostMessage" class="hidden text-center text-sm mt-2"></div>
 
-            <div class="z-10 flex flex-col items-center space-y-4 px-4 w-full max-w-lg">
-                <textarea id="ventInput"
-                          class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600
-                                 focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                          rows="4"
-                          placeholder="Share what's on your mind anonymously..."></textarea>
-
-                <button id="postVentBtn"
-                        class="btn-cosmic
-                               px-6 py-3 rounded-full text-lg font-bold
-                               text-white border-none cursor-pointer
-                               hover:shadow-lg focus:outline-none">
-                    Post Anonymously
-                </button>
-                <div id="ventPostLoading" class="hidden text-blue-300 text-sm">Posting...</div>
-                <p id="ventPostMessage" class="text-sm text-green-400 hidden"></p>
-
-                <h3 class="font-orbitron text-2xl sm:text-3xl font-bold text-blue-300 mt-8 mb-4">
-                    Drifters' Support Log
-                </h3>
-                <div id="ventsDisplayArea" class="w-full max-h-96 overflow-y-auto p-2 rounded-lg border border-gray-600 bg-gray-800">
-                    <!-- Vents will be loaded here -->
-                    <p class="text-gray-400 text-center" id="noVentsMessage">No vents yet. Be the first to share!</p>
-                </div>
+            <h3 class="text-3xl font-orbitron text-glow mt-8 mb-4">Drifters' Support Log</h3>
+            <div id="ventsDisplayArea" class="w-full max-w-md bg-gray-900 p-4 rounded-lg shadow-inner overflow-y-auto" style="max-height: 400px;">
+                <p id="noVentsMessage" class="text-gray-400 text-center">No vents yet. Be the first to share!</p>
+                <!-- Vents will be dynamically loaded here -->
             </div>
-        </div>
+        </section>
     </div>
 
+    <!-- Firebase SDKs and Main Script -->
     <script type="module">
-        // Import Firebase modules for client-side use
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, updateDoc, doc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         // Global Firebase instances and user ID
-        let fbApp;
-        let db;
-        let auth;
-        let currentUserId;
-        let isAuthReady = false;
+        let fbApp = null;
+        let db = null;
+        let auth = null;
+        let currentUserId = null;
+        let isAuthReady = false; // Flag to indicate Firebase auth is ready
 
         // Firebase Configuration (Canvas will provide these, or use defaults for external hosting)
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCBxU1X9eRFoc70KxGKrdEfHLF-LBDLBs0",
-  authDomain: "cosmic-drifters.firebaseapp.com",
-  projectId: "cosmic-drifters",
-  storageBucket: "cosmic-drifters.firebasestorage.app",
-  messagingSenderId: "919947237331",
-  appId: "1:919947237331:web:0939c62bfeff4b09b8c126",
-  measurementId: "G-CGW1J62H51"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);};
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyCBxU1X9eRFoc70KxGKrdEfHLF-LBDLBs0",
+            authDomain: "cosmic-drifters.firebaseapp.com",
+            projectId: "cosmic-drifters",
+            storageBucket: "cosmic-drifters.firebasestorage.app",
+            messagingSenderId: "919947237331",
+            appId: "1:919947237331:web:0939c62bfeff4b09b8c126",
+            measurementId: "G-CGW1J62H51" // measurementId is optional and not strictly needed for core functionality
+        };
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // Your Gemini API Key
         const GEMINI_API_KEY = "AIzaSyC-dK0r0zIiHrU1L6whT_7uZ1zHLnP6w34";
 
-        // DOM Elements
-        const cosmicBanner = document.getElementById('cosmicBanner');
-        const gameSuggestorSection = document.getElementById('gameSuggestorSection');
-        const ventingSystemSection = document.getElementById('ventingSystemSection'); // New section
-        const homeTabBtn = document.getElementById('homeTabBtn');
-        const gameSuggestorTabBtn = document.getElementById('gameSuggestorTabBtn');
-        const ventingTabBtn = document.getElementById('ventingTabBtn'); // New tab button
-
-        const generateQuoteBtn = document.getElementById('generateQuoteBtn');
-        const quoteDisplay = document.getElementById('quoteDisplay');
-        const loadingIndicator = document.getElementById('loadingIndicator');
-
-        const suggestGameBtn = document.getElementById('suggestGameBtn');
-        const gameSuggestionDisplay = document.getElementById('gameSuggestionDisplay');
-        const gameSuggestionLoadingIndicator = document.getElementById('gameSuggestionLoadingIndicator');
-
-        const ventInput = document.getElementById('ventInput'); // Vent input
-        const postVentBtn = document.getElementById('postVentBtn'); // Post vent button
-        const ventPostLoading = document.getElementById('ventPostLoading'); // Vent loading indicator
-        const ventPostMessage = document.getElementById('ventPostMessage'); // Vent success/error message
-        const ventsDisplayArea = document.getElementById('ventsDisplayArea'); // Area to display vents
-        const noVentsMessage = document.getElementById('noVentsMessage'); // Message when no vents are present
-        const userIdDisplay = document.getElementById('userIdDisplay'); // User ID display
-
         // --- Firebase Initialization and Authentication ---
-        async function initializeFirebase() {
+        async function initializeFirebase(elements) { // Pass elements object
+            const { userIdDisplay, ventsDisplayArea, noVentsMessage } = elements;
             try {
+                // Check if firebaseConfig is empty and not running in Canvas (where __firebase_config is provided)
+                if (Object.keys(firebaseConfig).length === 0 && typeof __firebase_config === 'undefined') {
+                    console.error("Firebase Configuration Missing: Please provide your firebaseConfig object if hosting externally.");
+                    if (userIdDisplay) {
+                        userIdDisplay.textContent = `User ID: Firebase Config Missing!`;
+                    }
+                    return; // Stop initialization if config is missing
+                }
+
                 if (!fbApp) {
                     fbApp = initializeApp(firebaseConfig);
                     db = getFirestore(fbApp);
@@ -436,6 +300,7 @@ const analytics = getAnalytics(app);};
                             currentUserId = user.uid;
                             console.log("Firebase: Authenticated as user:", currentUserId);
                         } else {
+                            // If no user, sign in anonymously
                             try {
                                 if (initialAuthToken) {
                                     await signInWithCustomToken(auth, initialAuthToken);
@@ -446,62 +311,78 @@ const analytics = getAnalytics(app);};
                                 console.log("Firebase: Signed in anonymously as user:", currentUserId);
                             } catch (error) {
                                 console.error("Firebase Auth Error:", error);
-                                // Fallback if anonymous sign-in fails (e.g., no network, blocked)
-                                currentUserId = crypto.randomUUID(); // Generate a random ID if auth fails
+                                // Fallback if anonymous sign-in fails (e.g., no network)
+                                currentUserId = crypto.randomUUID();
                                 console.warn("Firebase: Anonymous sign-in failed, using random UUID:", currentUserId);
                             }
                         }
                         isAuthReady = true;
-                        userIdDisplay.textContent = `User ID: ${currentUserId}`;
+                        if (userIdDisplay) { // Check if element exists before setting textContent
+                            userIdDisplay.textContent = `User ID: ${currentUserId}`;
+                        }
                         console.log("Firebase: Auth state changed. isAuthReady:", isAuthReady);
                         // Start listening for vents only after auth is ready
-                        setupVentsListener();
+                        setupVentsListener(ventsDisplayArea, noVentsMessage); // Pass elements
                     });
                 }
             } catch (error) {
                 console.error("Failed to initialize Firebase:", error);
-                userIdDisplay.textContent = `User ID: Error (check console)`;
+                if (userIdDisplay) { // Check if element exists before setting textContent
+                    userIdDisplay.textContent = `User ID: Error (check console)`;
+                }
             }
         }
 
         // --- Tab Switching Logic ---
-        function showTab(tabId) {
+        function showTab(tabId, elements) { // Pass elements as an object
+            const { cosmicBanner, gameSuggestorSection, ventingSystemSection, homeTabBtn, gameSuggestorTabBtn, ventingTabBtn, createStars } = elements;
+
+            // Defensive checks for all elements before accessing style
+            if (!cosmicBanner || !gameSuggestorSection || !ventingSystemSection ||
+                !homeTabBtn || !gameSuggestorTabBtn || !ventingTabBtn) {
+                console.error("showTab: One or more tab elements are null. Cannot switch tabs.");
+                return; // Exit if elements are not found
+            }
+
             // Hide all sections
             cosmicBanner.style.display = 'none';
             gameSuggestorSection.style.display = 'none';
-            ventingSystemSection.style.display = 'none'; // Hide new section
+            ventingSystemSection.style.display = 'none';
 
             // Deactivate all nav buttons
             homeTabBtn.classList.remove('active');
             gameSuggestorTabBtn.classList.remove('active');
-            ventingTabBtn.classList.remove('active'); // Deactivate new button
+            ventingTabBtn.classList.remove('active');
 
             // Show the selected tab and activate its button
             if (tabId === 'home') {
                 cosmicBanner.style.display = 'flex';
                 homeTabBtn.classList.add('active');
+                // Ensure createStars is called with the correct banner element
                 if (cosmicBanner.offsetWidth > 0 && cosmicBanner.offsetHeight > 0) {
-                    createStars(200);
+                    createStars(200, cosmicBanner);
                 }
             } else if (tabId === 'gameSuggestor') {
                 gameSuggestorSection.style.display = 'flex';
                 gameSuggestorTabBtn.classList.add('active');
-            } else if (tabId === 'venting') { // New tab logic
+            } else if (tabId === 'venting') {
                 ventingSystemSection.style.display = 'flex';
                 ventingTabBtn.classList.add('active');
             }
         }
 
         // --- Dynamic Starfield Generation (for cosmicBanner only) ---
-        function createStars(numStars) {
-            cosmicBanner.querySelectorAll('.star').forEach(star => star.remove());
+        function createStars(numStars, cosmicBannerElement) { // Receive cosmicBanner as argument
+            if (!cosmicBannerElement) return; // Defensive check
 
-            const bannerRect = cosmicBanner.getBoundingClientRect();
+            cosmicBannerElement.querySelectorAll('.star').forEach(star => star.remove());
+
+            const bannerRect = cosmicBannerElement.getBoundingClientRect();
             const bannerWidth = bannerRect.width;
             const bannerHeight = bannerRect.height;
 
             if (bannerWidth === 0 || bannerHeight === 0) {
-                setTimeout(() => createStars(numStars), 200);
+                setTimeout(() => createStars(numStars, cosmicBannerElement), 200);
                 return;
             }
 
@@ -514,15 +395,20 @@ const analytics = getAnalytics(app);};
                 star.style.left = `${Math.random() * 100}%`;
                 star.style.top = `${Math.random() * 100}%`;
                 star.style.animationDelay = `${Math.random() * 4}s`;
-                cosmicBanner.appendChild(star);
+                cosmicBannerElement.appendChild(star);
             }
         }
 
         // --- Gemini API Call for Cosmic Quotes ---
-        generateQuoteBtn.addEventListener('click', async () => {
-            quoteDisplay.textContent = '';
-            loadingIndicator.classList.remove('hidden');
-            generateQuoteBtn.disabled = true;
+        async function generateQuote(quoteDisplayElement, loadingIndicatorElement, generateQuoteBtnElement) {
+            if (!quoteDisplayElement || !loadingIndicatorElement || !generateQuoteBtnElement) {
+                console.error("generateQuote: One or more elements are null.");
+                return;
+            }
+
+            quoteDisplayElement.textContent = '';
+            loadingIndicatorElement.classList.remove('hidden');
+            generateQuoteBtnElement.disabled = true;
 
             try {
                 let chatHistory = [];
@@ -542,14 +428,14 @@ const analytics = getAnalytics(app);};
 
                 if (!response.ok) {
                     const errorMessage = result.error?.message || `HTTP Error: ${response.status} ${response.statusText}`;
-                    quoteDisplay.textContent = `API Error: ${errorMessage}. Please check your API key or request.`;
+                    quoteDisplayElement.textContent = `API Error: ${errorMessage}. Please check your API key or request.`;
                     console.error("Gemini API HTTP Error:", response.status, response.statusText, result);
                     return;
                 }
 
                 if (result.error) {
                     const errorMessage = result.error.message || 'Unknown API error in payload.';
-                    quoteDisplay.textContent = `API Error: ${errorMessage}.`;
+                    quoteDisplayElement.textContent = `API Error: ${errorMessage}.`;
                     console.error("Gemini API returned error payload:", result.error);
                     return;
                 }
@@ -558,25 +444,30 @@ const analytics = getAnalytics(app);};
                     result.candidates[0].content && result.candidates[0].content.parts &&
                     result.candidates[0].content.parts.length > 0) {
                     const text = result.candidates[0].content.parts[0].text;
-                    quoteDisplay.textContent = text;
+                    quoteDisplayElement.textContent = text;
                 } else {
-                    quoteDisplay.textContent = "Failed to generate quote. Unexpected API response content.";
+                    quoteDisplayElement.textContent = "Failed to generate quote. Unexpected API response content.";
                     console.error("Gemini API response content structure unexpected:", result);
                 }
             } catch (error) {
-                quoteDisplay.textContent = "Error generating quote. Please check your connection or console for details.";
+                quoteDisplayElement.textContent = "Error generating quote. Please check your connection or console for details.";
                 console.error("Error calling or parsing Gemini API response:", error);
             } finally {
-                loadingIndicator.classList.add('hidden');
-                generateQuoteBtn.disabled = false;
+                loadingIndicatorElement.classList.add('hidden');
+                generateQuoteBtnElement.disabled = false;
             }
-        });
+        }
 
         // --- Gemini API Call for Game Suggestion ---
-        suggestGameBtn.addEventListener('click', async () => {
-            gameSuggestionDisplay.textContent = '';
-            gameSuggestionLoadingIndicator.classList.remove('hidden');
-            suggestGameBtn.disabled = true;
+        async function suggestGame(gameSuggestionDisplayElement, gameSuggestionLoadingIndicatorElement, suggestGameBtnElement) {
+            if (!gameSuggestionDisplayElement || !gameSuggestionLoadingIndicatorElement || !suggestGameBtnElement) {
+                console.error("suggestGame: One or more elements are null.");
+                return;
+            }
+
+            gameSuggestionDisplayElement.textContent = '';
+            gameSuggestionLoadingIndicatorElement.classList.remove('hidden');
+            suggestGameBtnElement.disabled = true;
 
             try {
                 let chatHistory = [];
@@ -596,14 +487,14 @@ const analytics = getAnalytics(app);};
 
                 if (!response.ok) {
                     const errorMessage = result.error?.message || `HTTP Error: ${response.status} ${response.statusText}`;
-                    gameSuggestionDisplay.textContent = `API Error: ${errorMessage}. Please check your API key or request.`;
+                    gameSuggestionDisplayElement.textContent = `API Error: ${errorMessage}. Please check your API key or request.`;
                     console.error("Gemini API HTTP Error:", response.status, response.statusText, result);
                     return;
                 }
 
                 if (result.error) {
                     const errorMessage = result.error.message || 'Unknown API error in payload.';
-                    gameSuggestionDisplay.textContent = `API Error: ${errorMessage}.`;
+                    gameSuggestionDisplayElement.textContent = `API Error: ${errorMessage}.`;
                     console.error("Gemini API returned error payload:", result.error);
                     return;
                 }
@@ -612,22 +503,27 @@ const analytics = getAnalytics(app);};
                     result.candidates[0].content && result.candidates[0].content.parts &&
                     result.candidates[0].content.parts.length > 0) {
                     const text = result.candidates[0].content.parts[0].text;
-                    gameSuggestionDisplay.textContent = text;
+                    gameSuggestionDisplayElement.textContent = text;
                 } else {
-                    gameSuggestionDisplay.textContent = "Failed to generate suggestion. Unexpected API response content.";
+                    gameSuggestionDisplayElement.textContent = "Failed to generate suggestion. Unexpected API response content.";
                     console.error("Gemini API response content structure unexpected:", result);
                 }
             } catch (error) {
-                gameSuggestionDisplay.textContent = "Error generating suggestion. Please check your connection or console for details.";
+                gameSuggestionDisplayElement.textContent = "Error generating suggestion. Please check your connection or console for details.";
                 console.error("Error calling or parsing Gemini API response for game suggestion:", error);
             } finally {
-                gameSuggestionLoadingIndicator.classList.add('hidden');
-                suggestGameBtn.disabled = false;
+                gameSuggestionLoadingIndicatorElement.classList.add('hidden');
+                suggestGameBtnElement.disabled = false;
             }
-        });
+        }
 
         // --- Venting System Logic (Firestore) ---
-        async function postVent() {
+        async function postVent(ventInput, postVentBtn, ventPostLoading, ventPostMessage) { // Pass elements
+            if (!ventInput || !postVentBtn || !ventPostLoading || !ventPostMessage) {
+                console.error("postVent: One or more elements are null.");
+                return;
+            }
+
             const ventText = ventInput.value.trim();
             if (!ventText) {
                 ventPostMessage.textContent = "Please type something to vent.";
@@ -651,15 +547,13 @@ const analytics = getAnalytics(app);};
             ventPostMessage.classList.add('hidden');
 
             try {
-                // Ensure currentUserId is available for public data path
-                const userIdForPath = currentUserId || 'anonymous';
                 const ventsCollectionRef = collection(db, `artifacts/${appId}/public/data/vents`);
 
                 await addDoc(ventsCollectionRef, {
                     text: ventText,
-                    timestamp: new Date(), // Firestore uses server timestamps automatically if you use FieldValue.serverTimestamp() but new Date() works for simple cases
+                    timestamp: new Date(),
                     supportCount: 0,
-                    supportedBy: [] // Array to store UIDs of users who supported
+                    supportedBy: []
                 });
 
                 ventInput.value = ''; // Clear input
@@ -687,17 +581,15 @@ const analytics = getAnalytics(app);};
 
             const ventRef = doc(db, `artifacts/${appId}/public/data/vents/${ventId}`);
 
-            // Check if the current user has already supported this vent
             if (currentSupportedBy.includes(currentUserId)) {
-                // Optionally, allow un-supporting, but for simplicity, we'll just prevent re-supporting
                 console.log("User already supported this vent.");
                 return;
             }
 
             try {
                 await updateDoc(ventRef, {
-                    supportCount: (currentSupportedBy.length || 0) + 1, // Increment count
-                    supportedBy: arrayUnion(currentUserId) // Add user ID to array
+                    supportCount: (currentSupportedBy.length || 0) + 1,
+                    supportedBy: arrayUnion(currentUserId)
                 });
                 console.log(`Supported vent ${ventId}`);
             } catch (error) {
@@ -705,89 +597,152 @@ const analytics = getAnalytics(app);};
             }
         }
 
-        function setupVentsListener() {
+        function setupVentsListener(ventsDisplayAreaElement, noVentsMessageElement) { // Pass elements
             if (!isAuthReady || !db) {
                 console.warn("Firestore not ready for listening to vents.");
+                if (ventsDisplayAreaElement) {
+                    ventsDisplayAreaElement.innerHTML = `<p class="text-gray-400 text-center">Loading vents... (Waiting for Firebase)</p>`;
+                }
                 return;
             }
 
             const ventsCollectionRef = collection(db, `artifacts/${appId}/public/data/vents`);
-            const q = query(ventsCollectionRef, orderBy('timestamp', 'desc')); // Order by newest first
+            const q = query(ventsCollectionRef, orderBy('timestamp', 'desc'));
 
             onSnapshot(q, (snapshot) => {
-                ventsDisplayArea.innerHTML = ''; // Clear current display
-                if (snapshot.empty) {
-                    noVentsMessage.classList.remove('hidden');
-                    ventsDisplayArea.appendChild(noVentsMessage);
-                    return;
-                }
-                noVentsMessage.classList.add('hidden'); // Hide "no vents" message
+                if (ventsDisplayAreaElement) {
+                    ventsDisplayAreaElement.innerHTML = '';
+                    if (snapshot.empty) {
+                        noVentsMessageElement.classList.remove('hidden');
+                        ventsDisplayAreaElement.appendChild(noVentsMessageElement);
+                        return;
+                    }
+                    noVentsMessageElement.classList.add('hidden');
 
-                snapshot.forEach(doc => {
-                    const ventData = doc.data();
-                    const ventId = doc.id;
-                    const ventText = ventData.text;
-                    const supportCount = ventData.supportCount || 0;
-                    const supportedBy = ventData.supportedBy || [];
-                    const timestamp = ventData.timestamp ? ventData.timestamp.toDate().toLocaleString() : 'Just now';
+                    snapshot.forEach(doc => {
+                        const ventData = doc.data();
+                        const ventId = doc.id;
+                        const ventText = ventData.text;
+                        const supportCount = ventData.supportCount || 0;
+                        const supportedBy = ventData.supportedBy || [];
+                        const timestamp = ventData.timestamp ? ventData.timestamp.toDate().toLocaleString() : 'Just now';
 
-                    const ventCard = document.createElement('div');
-                    ventCard.classList.add('vent-card', 'w-full', 'mb-4'); // Tailwind classes
+                        const ventCard = document.createElement('div');
+                        ventCard.classList.add('vent-card', 'w-full', 'mb-4');
 
-                    const supportButtonDisabled = supportedBy.includes(currentUserId);
+                        const supportButtonDisabled = supportedBy.includes(currentUserId);
 
-                    ventCard.innerHTML = `
-                        <p class="text-gray-100 mb-2">${ventText}</p>
-                        <div class="flex justify-between items-center text-gray-400 text-xs">
-                            <span>Posted: ${timestamp}</span>
-                            <button class="support-btn ${supportButtonDisabled ? 'disabled' : ''}"
-                                data-vent-id="${ventId}"
-                                data-supported-by='${JSON.stringify(supportedBy)}'
-                                ${supportButtonDisabled ? 'disabled' : ''}>
-                                ❤️ Support (${supportCount})
-                            </button>
-                        </div>
-                    `;
-                    ventsDisplayArea.appendChild(ventCard);
-                });
-
-                // Add event listeners to newly created support buttons
-                ventsDisplayArea.querySelectorAll('.support-btn').forEach(button => {
-                    button.addEventListener('click', (event) => {
-                        const ventId = event.target.dataset.ventId;
-                        const supportedBy = JSON.parse(event.target.dataset.supportedBy);
-                        toggleSupport(ventId, supportedBy);
+                        ventCard.innerHTML = `
+                            <p class="text-gray-100 mb-2">${ventText}</p>
+                            <div class="flex justify-between items-center text-gray-400 text-xs">
+                                <span>Posted: ${timestamp}</span>
+                                <button class="support-btn ${supportButtonDisabled ? 'disabled' : ''}"
+                                    data-vent-id="${ventId}"
+                                    data-supported-by='${JSON.stringify(supportedBy)}'
+                                    ${supportButtonDisabled ? 'disabled' : ''}>
+                                    ❤️ Support (${supportCount})
+                                </button>
+                            </div>
+                        `;
+                        ventsDisplayAreaElement.appendChild(ventCard);
                     });
-                });
+
+                    ventsDisplayAreaElement.querySelectorAll('.support-btn').forEach(button => {
+                        button.addEventListener('click', (event) => {
+                            const ventId = event.target.dataset.ventId;
+                            const supportedBy = JSON.parse(event.target.dataset.supportedBy);
+                            toggleSupport(ventId, supportedBy);
+                        });
+                    });
+                }
             }, (error) => {
                 console.error("Error listening to vents:", error);
-                ventsDisplayArea.innerHTML = `<p class="text-red-400 text-center">Error loading vents. Please try again.</p>`;
+                if (ventsDisplayAreaElement) {
+                    ventsDisplayAreaElement.innerHTML = `<p class="text-red-400 text-center">Error loading vents. Please try again.</p>`;
+                }
             });
         }
 
 
         // --- Event Listeners and Initial Setup ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Initialize Firebase first
-            initializeFirebase();
+            // DOM Elements - All declarations and assignments are now here
+            // These must be retrieved *before* any functions that use them are called or event listeners are set up.
+            const cosmicBanner = document.getElementById('cosmicBanner');
+            const gameSuggestorSection = document.getElementById('gameSuggestorSection');
+            const ventingSystemSection = document.getElementById('ventingSystemSection');
+            const homeTabBtn = document.getElementById('homeTabBtn');
+            const gameSuggestorTabBtn = document.getElementById('gameSuggestorTabBtn');
+            const ventingTabBtn = document.getElementById('ventingTabBtn');
 
-            // Set initial tab to home
-            showTab('home');
+            const generateQuoteBtn = document.getElementById('generateQuoteBtn');
+            const quoteDisplay = document.getElementById('quoteDisplay');
+            const loadingIndicator = document.getElementById('loadingIndicator');
 
-            // Add event listeners for tab buttons
-            homeTabBtn.addEventListener('click', () => showTab('home'));
-            gameSuggestorTabBtn.addEventListener('click', () => showTab('gameSuggestor'));
-            ventingTabBtn.addEventListener('click', () => showTab('venting')); // New tab button listener
+            const suggestGameBtn = document.getElementById('suggestGameBtn');
+            const gameSuggestionDisplay = document.getElementById('gameSuggestionDisplay');
+            const gameSuggestionLoadingIndicator = document.getElementById('gameSuggestionLoadingIndicator');
 
-            // Re-generate stars on window resize (only if banner is visible)
+            const ventInput = document.getElementById('ventInput');
+            const postVentBtn = document.getElementById('postVentBtn');
+            const ventPostLoading = document.getElementById('ventPostLoading');
+            const ventPostMessage = document.getElementById('ventPostMessage');
+            const ventsDisplayArea = document.getElementById('ventsDisplayArea');
+            const noVentsMessage = document.getElementById('noVentsMessage');
+            const userIdDisplay = document.getElementById('userIdDisplay');
+
+            // Create an object to hold all DOM elements
+            const allDOMElements = {
+                cosmicBanner, gameSuggestorSection, ventingSystemSection,
+                homeTabBtn, gameSuggestorTabBtn, ventingTabBtn,
+                generateQuoteBtn, quoteDisplay, loadingIndicator,
+                suggestGameBtn, gameSuggestionDisplay, gameSuggestionLoadingIndicator,
+                ventInput, postVentBtn, ventPostLoading, ventPostMessage,
+                ventsDisplayArea, noVentsMessage, userIdDisplay
+            };
+
+            // Log elements to debug if any are null
+            console.log("All DOM Elements retrieved:", allDOMElements);
+            for (const key in allDOMElements) {
+                if (allDOMElements[key] === null) {
+                    console.error(`Element '${key}' is null! This means its ID might be incorrect in the HTML or the element is missing.`);
+                }
+            }
+
+            // Initialize Firebase, passing the elements object
+            initializeFirebase(allDOMElements);
+
+            // Initial tab display, passing the elements object
+            // Perform a final check for critical elements before calling showTab
+            if (!allDOMElements.cosmicBanner || !allDOMElements.gameSuggestorSection || !allDOMElements.ventingSystemSection ||
+                !allDOMElements.homeTabBtn || !allDOMElements.gameSuggestorTabBtn || !allDOMElements.ventingTabBtn) {
+                console.error("showTab: Critical tab elements are still null. Cannot switch tabs.");
+                return;
+            }
+
+            showTab('home', allDOMElements);
+
+            // Attach event listeners, passing relevant elements to their handlers
+            // These should now be safe to attach as elements are confirmed to exist.
+            if (homeTabBtn) homeTabBtn.addEventListener('click', () => showTab('home', allDOMElements));
+            if (gameSuggestorTabBtn) gameSuggestorTabBtn.addEventListener('click', () => showTab('gameSuggestor', allDOMElements));
+            if (ventingTabBtn) ventingTabBtn.addEventListener('click', () => showTab('venting', allDOMElements));
+
             window.addEventListener('resize', () => {
-                if (cosmicBanner.style.display === 'flex') {
-                    createStars(200);
+                if (allDOMElements.cosmicBanner && allDOMElements.cosmicBanner.style.display === 'flex') {
+                    createStars(200, allDOMElements.cosmicBanner); // Call createStars directly
                 }
             });
 
-            // Venting system button listener
-            postVentBtn.addEventListener('click', postVent);
+            if (generateQuoteBtn) {
+                generateQuoteBtn.addEventListener('click', () => generateQuote(allDOMElements.quoteDisplay, allDOMElements.loadingIndicator, allDOMElements.generateQuoteBtn));
+            }
+            if (suggestGameBtn) {
+                suggestGameBtn.addEventListener('click', () => suggestGame(allDOMElements.gameSuggestionDisplay, allDOMElements.gameSuggestionLoadingIndicator, allDOMElements.suggestGameBtn));
+            }
+            if (postVentBtn) {
+                postVentBtn.addEventListener('click', () => postVent(allDOMElements.ventInput, allDOMElements.postVentBtn, allDOMElements.ventPostLoading, allDOMElements.ventPostMessage));
+            }
         });
     </script>
 </body>
