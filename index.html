@@ -382,7 +382,8 @@
             const bannerHeight = bannerRect.height;
 
             if (bannerWidth === 0 || bannerHeight === 0) {
-                setTimeout(() => createStars(numStars, cosmicBannerElement), 200);
+                // No setTimeout here, as the primary setTimeout handles initial loading.
+                // If it's still 0, it means the element isn't rendered yet, and we rely on the parent setTimeout.
                 return;
             }
 
@@ -529,7 +530,6 @@
                 ventPostMessage.textContent = "Please type something to vent.";
                 ventPostMessage.classList.remove('hidden');
                 ventPostMessage.style.color = 'red';
-                setTimeout(() => ventPostMessage.classList.add('hidden'), 3000);
                 return;
             }
 
@@ -538,7 +538,6 @@
                 ventPostMessage.classList.remove('hidden');
                 ventPostMessage.style.color = 'orange';
                 console.warn("Firestore not ready for posting vent.");
-                setTimeout(() => ventPostMessage.classList.add('hidden'), 3000);
                 return;
             }
 
@@ -560,7 +559,6 @@
                 ventPostMessage.textContent = "Vent posted successfully!";
                 ventPostMessage.classList.remove('hidden');
                 ventPostMessage.style.color = 'lightgreen';
-                setTimeout(() => ventPostMessage.classList.add('hidden'), 3000);
 
             } catch (error) {
                 console.error("Error posting vent:", error);
@@ -570,6 +568,8 @@
             } finally {
                 ventPostLoading.classList.add('hidden');
                 postVentBtn.disabled = false;
+                // Use setTimeout to hide message after a delay
+                setTimeout(() => ventPostMessage.classList.add('hidden'), 3000);
             }
         }
 
@@ -666,83 +666,83 @@
 
         // --- Event Listeners and Initial Setup ---
         document.addEventListener('DOMContentLoaded', () => {
-            // DOM Elements - All declarations and assignments are now here
-            // These must be retrieved *before* any functions that use them are called or event listeners are set up.
-            const cosmicBanner = document.getElementById('cosmicBanner');
-            const gameSuggestorSection = document.getElementById('gameSuggestorSection');
-            const ventingSystemSection = document.getElementById('ventingSystemSection');
-            const homeTabBtn = document.getElementById('homeTabBtn');
-            const gameSuggestorTabBtn = document.getElementById('gameSuggestorTabBtn');
-            const ventingTabBtn = document.getElementById('ventingTabBtn');
+            // Wrap the entire setup in a setTimeout to ensure all HTML is rendered
+            // before attempting to get elements and attach listeners.
+            setTimeout(() => {
+                // DOM Elements - All declarations and assignments are now here
+                const cosmicBanner = document.getElementById('cosmicBanner');
+                const gameSuggestorSection = document.getElementById('gameSuggestorSection');
+                const ventingSystemSection = document.getElementById('ventingSystemSection');
+                const homeTabBtn = document.getElementById('homeTabBtn');
+                const gameSuggestorTabBtn = document.getElementById('gameSuggestorTabBtn');
+                const ventingTabBtn = document.getElementById('ventingTabBtn');
 
-            const generateQuoteBtn = document.getElementById('generateQuoteBtn');
-            const quoteDisplay = document.getElementById('quoteDisplay');
-            const loadingIndicator = document.getElementById('loadingIndicator');
+                const generateQuoteBtn = document.getElementById('generateQuoteBtn');
+                const quoteDisplay = document.getElementById('quoteDisplay');
+                const loadingIndicator = document.getElementById('loadingIndicator');
 
-            const suggestGameBtn = document.getElementById('suggestGameBtn');
-            const gameSuggestionDisplay = document.getElementById('gameSuggestionDisplay');
-            const gameSuggestionLoadingIndicator = document.getElementById('gameSuggestionLoadingIndicator');
+                const suggestGameBtn = document.getElementById('suggestGameBtn');
+                const gameSuggestionDisplay = document.getElementById('gameSuggestionDisplay');
+                const gameSuggestionLoadingIndicator = document.getElementById('gameSuggestionLoadingIndicator');
 
-            const ventInput = document.getElementById('ventInput');
-            const postVentBtn = document.getElementById('postVentBtn');
-            const ventPostLoading = document.getElementById('ventPostLoading');
-            const ventPostMessage = document.getElementById('ventPostMessage');
-            const ventsDisplayArea = document.getElementById('ventsDisplayArea');
-            const noVentsMessage = document.getElementById('noVentsMessage');
-            const userIdDisplay = document.getElementById('userIdDisplay');
+                const ventInput = document.getElementById('ventInput');
+                const postVentBtn = document.getElementById('postVentBtn');
+                const ventPostLoading = document.getElementById('ventPostLoading');
+                const ventPostMessage = document.getElementById('ventPostMessage');
+                const ventsDisplayArea = document.getElementById('ventsDisplayArea');
+                const noVentsMessage = document.getElementById('noVentsMessage');
+                const userIdDisplay = document.getElementById('userIdDisplay');
 
-            // Create an object to hold all DOM elements
-            const allDOMElements = {
-                cosmicBanner, gameSuggestorSection, ventingSystemSection,
-                homeTabBtn, gameSuggestorTabBtn, ventingTabBtn,
-                generateQuoteBtn, quoteDisplay, loadingIndicator,
-                suggestGameBtn, gameSuggestionDisplay, gameSuggestionLoadingIndicator,
-                ventInput, postVentBtn, ventPostLoading, ventPostMessage,
-                ventsDisplayArea, noVentsMessage, userIdDisplay
-            };
+                // Create an object to hold all DOM elements
+                const allDOMElements = {
+                    cosmicBanner, gameSuggestorSection, ventingSystemSection,
+                    homeTabBtn, gameSuggestorTabBtn, ventingTabBtn,
+                    generateQuoteBtn, quoteDisplay, loadingIndicator,
+                    suggestGameBtn, gameSuggestionDisplay, gameSuggestionLoadingIndicator,
+                    ventInput, postVentBtn, ventPostLoading, ventPostMessage,
+                    ventsDisplayArea, noVentsMessage, userIdDisplay
+                };
 
-            // Log elements to debug if any are null
-            console.log("All DOM Elements retrieved:", allDOMElements);
-            for (const key in allDOMElements) {
-                if (allDOMElements[key] === null) {
-                    console.error(`Element '${key}' is null! This means its ID might be incorrect in the HTML or the element is missing.`);
+                // Log elements to debug if any are null
+                console.log("All DOM Elements retrieved:", allDOMElements);
+                let criticalElementsMissing = false;
+                for (const key in allDOMElements) {
+                    if (allDOMElements[key] === null) {
+                        console.error(`Element '${key}' is null! This means its ID might be incorrect in the HTML or the element is missing.`);
+                        criticalElementsMissing = true;
+                    }
                 }
-            }
 
-            // Initialize Firebase, passing the elements object
-            initializeFirebase(allDOMElements);
-
-            // Initial tab display, passing the elements object
-            // Perform a final check for critical elements before calling showTab
-            if (!allDOMElements.cosmicBanner || !allDOMElements.gameSuggestorSection || !allDOMElements.ventingSystemSection ||
-                !allDOMElements.homeTabBtn || !allDOMElements.gameSuggestorTabBtn || !allDOMElements.ventingTabBtn) {
-                console.error("showTab: Critical tab elements are still null. Cannot switch tabs.");
-                return;
-            }
-
-            showTab('home', allDOMElements);
-
-            // Attach event listeners, passing relevant elements to their handlers
-            // These should now be safe to attach as elements are confirmed to exist.
-            if (homeTabBtn) homeTabBtn.addEventListener('click', () => showTab('home', allDOMElements));
-            if (gameSuggestorTabBtn) gameSuggestorTabBtn.addEventListener('click', () => showTab('gameSuggestor', allDOMElements));
-            if (ventingTabBtn) ventingTabBtn.addEventListener('click', () => showTab('venting', allDOMElements));
-
-            window.addEventListener('resize', () => {
-                if (allDOMElements.cosmicBanner && allDOMElements.cosmicBanner.style.display === 'flex') {
-                    createStars(200, allDOMElements.cosmicBanner); // Call createStars directly
+                if (criticalElementsMissing) {
+                    console.error("Initialization aborted: Critical DOM elements are missing.");
+                    if (userIdDisplay) {
+                        userIdDisplay.textContent = "User ID: Initialization Error (missing elements)";
+                    }
+                    return; // Stop further execution if critical elements are not found
                 }
-            });
 
-            if (generateQuoteBtn) {
+                // Initialize Firebase, passing the elements object
+                initializeFirebase(allDOMElements);
+
+                // Initial tab display, passing the elements object
+                showTab('home', allDOMElements);
+
+                // Attach event listeners, passing relevant elements to their handlers
+                homeTabBtn.addEventListener('click', () => showTab('home', allDOMElements));
+                gameSuggestorTabBtn.addEventListener('click', () => showTab('gameSuggestor', allDOMElements));
+                ventingTabBtn.addEventListener('click', () => showTab('venting', allDOMElements));
+
+                window.addEventListener('resize', () => {
+                    if (allDOMElements.cosmicBanner && allDOMElements.cosmicBanner.style.display === 'flex') {
+                        createStars(200, allDOMElements.cosmicBanner); // Call createStars directly
+                    }
+                });
+
                 generateQuoteBtn.addEventListener('click', () => generateQuote(allDOMElements.quoteDisplay, allDOMElements.loadingIndicator, allDOMElements.generateQuoteBtn));
-            }
-            if (suggestGameBtn) {
                 suggestGameBtn.addEventListener('click', () => suggestGame(allDOMElements.gameSuggestionDisplay, allDOMElements.gameSuggestionLoadingIndicator, allDOMElements.suggestGameBtn));
-            }
-            if (postVentBtn) {
                 postVentBtn.addEventListener('click', () => postVent(allDOMElements.ventInput, allDOMElements.postVentBtn, allDOMElements.ventPostLoading, allDOMElements.ventPostMessage));
-            }
+
+            }, 50); // Small delay to ensure all elements are rendered
         });
     </script>
 </body>
