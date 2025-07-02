@@ -7,7 +7,7 @@
 
     <!-- Open Graph Meta Tags for Discord/Social Media Previews -->
     <meta property="og:title" content="Cosmic Drifters: Your Journey Through the Stars" />
-    <meta property="og:description" content="Embark on an interstellar adventure! Discover inspiring cosmic quotes and get random game suggestions for your Discord group." />
+    <meta property="og:description" content="Embark on an interstellar adventure! Discover inspiring cosmic quotes, get game suggestions, and find anonymous support." />
     <meta property="og:image" content="https://cloudedlullaby.github.io/comsic-drifters-banner/banner-preview.png" />
     <meta property="og:url" content="https://cloudedlullaby.github.io/comsic-drifters-banner/" />
     <meta property="og:type" content="website" />
@@ -49,34 +49,40 @@
             font-family: 'Inter', sans-serif;
             min-height: 100vh;
             display: flex;
-            flex-direction: column; /* Changed to column to stack header/nav above content */
+            flex-direction: column;
             align-items: center;
-            justify-content: flex-start; /* Align content to top initially */
+            justify-content: flex-start;
             padding: 1rem;
             background:
+                /* Central bright core - similar to the image's center */
                 radial-gradient(circle at 50% 50%, rgba(255, 200, 100, 0.9) 0%, rgba(255, 100, 0, 0.8) 15%, transparent 35%),
+                /* Prominent reddish-orange cloud, top-left */
                 radial-gradient(circle at 20% 30%, rgba(200, 50, 0, 0.8) 0%, transparent 40%),
+                /* Deep purple cloud, lower-right */
                 radial-gradient(circle at 80% 70%, rgba(100, 0, 150, 0.9) 0%, transparent 40%),
+                /* Bright blue gas, bottom-left */
                 radial-gradient(circle at 10% 85%, rgba(0, 100, 255, 0.7) 0%, transparent 45%),
+                /* Faint larger pinkish/magenta swirl, top-right */
                 radial-gradient(circle at 75% 15%, rgba(255, 50, 200, 0.5) 0%, transparent 55%),
+                /* More subtle bluish haze */
                 radial-gradient(circle at 40% 60%, rgba(0, 50, 100, 0.6) 0%, transparent 50%),
                 #000003;
             background-size: 500% 500%;
             animation: nebula-move 100s ease infinite alternate;
             overflow: hidden;
-            position: relative; /* For the nebula background to fill */
+            position: relative;
         }
 
         /* Style for the main content area (where banner/explorer will be displayed) */
         .content-area {
             width: 100%;
             max-width: 4xl;
-            flex-grow: 1; /* Allows it to expand and push footer down if needed */
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            position: relative; /* For internal positioning */
+            position: relative;
         }
 
         .cosmic-banner, .cosmic-section {
@@ -87,8 +93,8 @@
             overflow: hidden;
             color: white;
             text-align: center;
-            padding: 2rem; /* Consistent padding */
-            border-radius: 1rem; /* Consistent border radius */
+            padding: 2rem;
+            border-radius: 1rem;
             background: radial-gradient(circle at top left, #2c0b4e 0%, transparent 70%),
                         radial-gradient(circle at bottom right, #1a0636 0%, transparent 70%),
                         linear-gradient(to right, #0a011a, #1c004a, #0a011a);
@@ -98,7 +104,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 480px; /* Ensure sections have a decent height */
+            min-height: 480px;
         }
 
         .cosmic-section {
@@ -157,15 +163,110 @@
             opacity: 0.9;
             animation: twinkle 4s infinite ease-in-out;
         }
+
+        /* Venting System Specific Styles */
+        .vent-card {
+            background-color: rgba(30, 0, 60, 0.8); /* Slightly transparent dark background */
+            border: 1px solid #4a0d7c;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            text-align: left;
+            word-wrap: break-word; /* Ensure long words wrap */
+        }
+        .support-btn {
+            background-color: #2575fc;
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            transition: background-color 0.2s ease;
+        }
+        .support-btn:hover:not(:disabled) {
+            background-color: #1a5acb;
+        }
+        .support-btn:disabled {
+            background-color: #4a4a4a;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
     </style>
 </head>
 <body class="p-4">
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, updateDoc, doc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // Global variables (will be initialized in JS below)
+        window.fbApp = null;
+        window.db = null;
+        window.auth = null;
+        window.currentUserId = null;
+        window.isAuthReady = false; // Flag to indicate Firebase auth is ready
+
+        // Firebase Configuration (Canvas will provide these)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Initialize Firebase and Authenticate
+        async function initializeFirebase() {
+            try {
+                if (!window.fbApp) {
+                    window.fbApp = initializeApp(firebaseConfig);
+                    window.db = getFirestore(window.fbApp);
+                    window.auth = getAuth(window.fbApp);
+
+                    onAuthStateChanged(window.auth, async (user) => {
+                        if (user) {
+                            window.currentUserId = user.uid;
+                            console.log("Firebase: Authenticated as user:", window.currentUserId);
+                        } else {
+                            // If no user, sign in anonymously
+                            try {
+                                if (initialAuthToken) {
+                                    await signInWithCustomToken(window.auth, initialAuthToken);
+                                } else {
+                                    await signInAnonymously(window.auth);
+                                }
+                                window.currentUserId = window.auth.currentUser.uid;
+                                console.log("Firebase: Signed in anonymously as user:", window.currentUserId);
+                            } catch (error) {
+                                console.error("Firebase Auth Error:", error);
+                                // Fallback if anonymous sign-in fails (e.g., no network)
+                                window.currentUserId = crypto.randomUUID();
+                                console.warn("Firebase: Anonymous sign-in failed, using random UUID:", window.currentUserId);
+                            }
+                        }
+                        window.isAuthReady = true;
+                        document.getElementById('userIdDisplay').textContent = `User ID: ${window.currentUserId}`;
+                        console.log("Firebase: Auth state changed. isAuthReady:", window.isAuthReady);
+                        // Trigger initial data load if needed after auth is ready
+                        // This will be handled by the DOMContentLoaded listener for vents
+                    });
+                }
+            } catch (error) {
+                console.error("Failed to initialize Firebase:", error);
+            }
+        }
+
+        initializeFirebase();
+    </script>
+
 
     <!-- Navigation Bar -->
     <nav class="w-full max-w-4xl flex justify-center space-x-4 mb-8">
         <button id="homeTabBtn" class="nav-btn active">Home</button>
         <button id="gameSuggestorTabBtn" class="nav-btn">Game Suggestor</button>
+        <button id="ventingTabBtn" class="nav-btn">Venting & Support</button>
     </nav>
+
+    <!-- User ID Display (for debugging/multi-user identification as per Canvas guidelines) -->
+    <div class="w-full max-w-4xl text-right text-xs text-gray-400 mb-4">
+        <span id="userIdDisplay">User ID: Loading...</span>
+    </div>
 
     <!-- Main Content Area -->
     <div class="content-area">
@@ -222,201 +323,451 @@
                 </div>
             </div>
         </div>
+
+        <!-- Tab 3: Venting & Support System -->
+        <div id="ventingSystemSection" class="cosmic-section">
+            <h2 class="font-orbitron text-4xl sm:text-5xl font-extrabold text-glow mb-8">
+                Vent Your Cosmic Woes
+            </h2>
+
+            <div class="z-10 flex flex-col items-center space-y-4 px-4 w-full max-w-lg">
+                <textarea id="ventInput"
+                          class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600
+                                 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                          rows="4"
+                          placeholder="Share what's on your mind anonymously..."></textarea>
+
+                <button id="postVentBtn"
+                        class="btn-cosmic
+                               px-6 py-3 rounded-full text-lg font-bold
+                               text-white border-none cursor-pointer
+                               hover:shadow-lg focus:outline-none">
+                    Post Anonymously
+                </button>
+                <div id="ventPostLoading" class="hidden text-blue-300 text-sm">Posting...</div>
+                <p id="ventPostMessage" class="text-sm text-green-400 hidden"></p>
+
+                <h3 class="font-orbitron text-2xl sm:text-3xl font-bold text-blue-300 mt-8 mb-4">
+                    Drifters' Support Log
+                </h3>
+                <div id="ventsDisplayArea" class="w-full max-h-96 overflow-y-auto p-2 rounded-lg border border-gray-600 bg-gray-800">
+                    <!-- Vents will be loaded here -->
+                    <p class="text-gray-400 text-center" id="noVentsMessage">No vents yet. Be the first to share!</p>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const cosmicBanner = document.getElementById('cosmicBanner');
-            const gameSuggestorSection = document.getElementById('gameSuggestorSection'); // Renamed
-            const homeTabBtn = document.getElementById('homeTabBtn');
-            const gameSuggestorTabBtn = document.getElementById('gameSuggestorTabBtn'); // Renamed
+    <script type="module">
+        // Import Firebase modules for client-side use
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, updateDoc, doc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-            const generateQuoteBtn = document.getElementById('generateQuoteBtn');
-            const quoteDisplay = document.getElementById('quoteDisplay');
-            const loadingIndicator = document.getElementById('loadingIndicator');
+        // Global Firebase instances and user ID
+        let fbApp;
+        let db;
+        let auth;
+        let currentUserId;
+        let isAuthReady = false;
 
-            const suggestGameBtn = document.getElementById('suggestGameBtn'); // Renamed
-            const gameSuggestionDisplay = document.getElementById('gameSuggestionDisplay'); // Renamed
-            const gameSuggestionLoadingIndicator = document.getElementById('gameSuggestionLoadingIndicator'); // Renamed
+        // Firebase Configuration (Canvas will provide these, or use defaults for external hosting)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-            const API_KEY = "AIzaSyC-dK0r0zIiHrU1L6whT_7uZ1zHLnP6w34"; // Your API key
+        // Your Gemini API Key
+        const GEMINI_API_KEY = "AIzaSyC-dK0r0zIiHrU1L6whT_7uZ1zHLnP6w34";
 
-            // --- Tab Switching Logic ---
-            function showTab(tabId) {
-                // Hide all sections
-                cosmicBanner.style.display = 'none';
-                gameSuggestorSection.style.display = 'none'; // Renamed
+        // DOM Elements
+        const cosmicBanner = document.getElementById('cosmicBanner');
+        const gameSuggestorSection = document.getElementById('gameSuggestorSection');
+        const ventingSystemSection = document.getElementById('ventingSystemSection'); // New section
+        const homeTabBtn = document.getElementById('homeTabBtn');
+        const gameSuggestorTabBtn = document.getElementById('gameSuggestorTabBtn');
+        const ventingTabBtn = document.getElementById('ventingTabBtn'); // New tab button
 
-                // Deactivate all nav buttons
-                homeTabBtn.classList.remove('active');
-                gameSuggestorTabBtn.classList.remove('active'); // Renamed
+        const generateQuoteBtn = document.getElementById('generateQuoteBtn');
+        const quoteDisplay = document.getElementById('quoteDisplay');
+        const loadingIndicator = document.getElementById('loadingIndicator');
 
-                // Show the selected tab and activate its button
-                if (tabId === 'home') {
-                    cosmicBanner.style.display = 'flex';
-                    homeTabBtn.classList.add('active');
-                    // Re-create stars if returning to home, in case of resize or initial load
-                    if (cosmicBanner.offsetWidth > 0 && cosmicBanner.offsetHeight > 0) {
-                        createStars(200);
-                    }
-                } else if (tabId === 'gameSuggestor') { // Updated tabId
-                    gameSuggestorSection.style.display = 'flex'; // Renamed
-                    gameSuggestorTabBtn.classList.add('active'); // Renamed
+        const suggestGameBtn = document.getElementById('suggestGameBtn');
+        const gameSuggestionDisplay = document.getElementById('gameSuggestionDisplay');
+        const gameSuggestionLoadingIndicator = document.getElementById('gameSuggestionLoadingIndicator');
+
+        const ventInput = document.getElementById('ventInput'); // Vent input
+        const postVentBtn = document.getElementById('postVentBtn'); // Post vent button
+        const ventPostLoading = document.getElementById('ventPostLoading'); // Vent loading indicator
+        const ventPostMessage = document.getElementById('ventPostMessage'); // Vent success/error message
+        const ventsDisplayArea = document.getElementById('ventsDisplayArea'); // Area to display vents
+        const noVentsMessage = document.getElementById('noVentsMessage'); // Message when no vents are present
+        const userIdDisplay = document.getElementById('userIdDisplay'); // User ID display
+
+        // --- Firebase Initialization and Authentication ---
+        async function initializeFirebase() {
+            try {
+                if (!fbApp) {
+                    fbApp = initializeApp(firebaseConfig);
+                    db = getFirestore(fbApp);
+                    auth = getAuth(fbApp);
+
+                    onAuthStateChanged(auth, async (user) => {
+                        if (user) {
+                            currentUserId = user.uid;
+                            console.log("Firebase: Authenticated as user:", currentUserId);
+                        } else {
+                            try {
+                                if (initialAuthToken) {
+                                    await signInWithCustomToken(auth, initialAuthToken);
+                                } else {
+                                    await signInAnonymously(auth);
+                                }
+                                currentUserId = auth.currentUser.uid;
+                                console.log("Firebase: Signed in anonymously as user:", currentUserId);
+                            } catch (error) {
+                                console.error("Firebase Auth Error:", error);
+                                // Fallback if anonymous sign-in fails (e.g., no network, blocked)
+                                currentUserId = crypto.randomUUID(); // Generate a random ID if auth fails
+                                console.warn("Firebase: Anonymous sign-in failed, using random UUID:", currentUserId);
+                            }
+                        }
+                        isAuthReady = true;
+                        userIdDisplay.textContent = `User ID: ${currentUserId}`;
+                        console.log("Firebase: Auth state changed. isAuthReady:", isAuthReady);
+                        // Start listening for vents only after auth is ready
+                        setupVentsListener();
+                    });
                 }
+            } catch (error) {
+                console.error("Failed to initialize Firebase:", error);
+                userIdDisplay.textContent = `User ID: Error (check console)`;
             }
+        }
+
+        // --- Tab Switching Logic ---
+        function showTab(tabId) {
+            // Hide all sections
+            cosmicBanner.style.display = 'none';
+            gameSuggestorSection.style.display = 'none';
+            ventingSystemSection.style.display = 'none'; // Hide new section
+
+            // Deactivate all nav buttons
+            homeTabBtn.classList.remove('active');
+            gameSuggestorTabBtn.classList.remove('active');
+            ventingTabBtn.classList.remove('active'); // Deactivate new button
+
+            // Show the selected tab and activate its button
+            if (tabId === 'home') {
+                cosmicBanner.style.display = 'flex';
+                homeTabBtn.classList.add('active');
+                if (cosmicBanner.offsetWidth > 0 && cosmicBanner.offsetHeight > 0) {
+                    createStars(200);
+                }
+            } else if (tabId === 'gameSuggestor') {
+                gameSuggestorSection.style.display = 'flex';
+                gameSuggestorTabBtn.classList.add('active');
+            } else if (tabId === 'venting') { // New tab logic
+                ventingSystemSection.style.display = 'flex';
+                ventingTabBtn.classList.add('active');
+            }
+        }
+
+        // --- Dynamic Starfield Generation (for cosmicBanner only) ---
+        function createStars(numStars) {
+            cosmicBanner.querySelectorAll('.star').forEach(star => star.remove());
+
+            const bannerRect = cosmicBanner.getBoundingClientRect();
+            const bannerWidth = bannerRect.width;
+            const bannerHeight = bannerRect.height;
+
+            if (bannerWidth === 0 || bannerHeight === 0) {
+                setTimeout(() => createStars(numStars), 200);
+                return;
+            }
+
+            for (let i = 0; i < numStars; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                const size = Math.random() * 2 + 1;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 4}s`;
+                cosmicBanner.appendChild(star);
+            }
+        }
+
+        // --- Gemini API Call for Cosmic Quotes ---
+        generateQuoteBtn.addEventListener('click', async () => {
+            quoteDisplay.textContent = '';
+            loadingIndicator.classList.remove('hidden');
+            generateQuoteBtn.disabled = true;
+
+            try {
+                let chatHistory = [];
+                const prompt = "Generate a short, inspiring quote about space, stars, exploration, or the cosmos. Make it poetic and philosophical. Do not include who said the quote.";
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                const payload = { contents: chatHistory };
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    const errorMessage = result.error?.message || `HTTP Error: ${response.status} ${response.statusText}`;
+                    quoteDisplay.textContent = `API Error: ${errorMessage}. Please check your API key or request.`;
+                    console.error("Gemini API HTTP Error:", response.status, response.statusText, result);
+                    return;
+                }
+
+                if (result.error) {
+                    const errorMessage = result.error.message || 'Unknown API error in payload.';
+                    quoteDisplay.textContent = `API Error: ${errorMessage}.`;
+                    console.error("Gemini API returned error payload:", result.error);
+                    return;
+                }
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    quoteDisplay.textContent = text;
+                } else {
+                    quoteDisplay.textContent = "Failed to generate quote. Unexpected API response content.";
+                    console.error("Gemini API response content structure unexpected:", result);
+                }
+            } catch (error) {
+                quoteDisplay.textContent = "Error generating quote. Please check your connection or console for details.";
+                console.error("Error calling or parsing Gemini API response:", error);
+            } finally {
+                loadingIndicator.classList.add('hidden');
+                generateQuoteBtn.disabled = false;
+            }
+        });
+
+        // --- Gemini API Call for Game Suggestion ---
+        suggestGameBtn.addEventListener('click', async () => {
+            gameSuggestionDisplay.textContent = '';
+            gameSuggestionLoadingIndicator.classList.remove('hidden');
+            suggestGameBtn.disabled = true;
+
+            try {
+                let chatHistory = [];
+                const prompt = `Suggest a fun game or a creative in-game challenge suitable for a small, cozy gaming Discord group. Make the suggestion concise and engaging, like: "Your next mission: [Game/Challenge]!" or "Tonight's pick: [Game/Activity] - [Brief Fun Description]."`;
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                const payload = { contents: chatHistory };
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    const errorMessage = result.error?.message || `HTTP Error: ${response.status} ${response.statusText}`;
+                    gameSuggestionDisplay.textContent = `API Error: ${errorMessage}. Please check your API key or request.`;
+                    console.error("Gemini API HTTP Error:", response.status, response.statusText, result);
+                    return;
+                }
+
+                if (result.error) {
+                    const errorMessage = result.error.message || 'Unknown API error in payload.';
+                    gameSuggestionDisplay.textContent = `API Error: ${errorMessage}.`;
+                    console.error("Gemini API returned error payload:", result.error);
+                    return;
+                }
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    gameSuggestionDisplay.textContent = text;
+                } else {
+                    gameSuggestionDisplay.textContent = "Failed to generate suggestion. Unexpected API response content.";
+                    console.error("Gemini API response content structure unexpected:", result);
+                }
+            } catch (error) {
+                gameSuggestionDisplay.textContent = "Error generating suggestion. Please check your connection or console for details.";
+                console.error("Error calling or parsing Gemini API response for game suggestion:", error);
+            } finally {
+                gameSuggestionLoadingIndicator.classList.add('hidden');
+                suggestGameBtn.disabled = false;
+            }
+        });
+
+        // --- Venting System Logic (Firestore) ---
+        async function postVent() {
+            const ventText = ventInput.value.trim();
+            if (!ventText) {
+                ventPostMessage.textContent = "Please type something to vent.";
+                ventPostMessage.classList.remove('hidden');
+                ventPostMessage.style.color = 'red';
+                setTimeout(() => ventPostMessage.classList.add('hidden'), 3000);
+                return;
+            }
+
+            if (!isAuthReady || !db) {
+                ventPostMessage.textContent = "System not ready. Please wait a moment.";
+                ventPostMessage.classList.remove('hidden');
+                ventPostMessage.style.color = 'orange';
+                console.warn("Firestore not ready for posting vent.");
+                setTimeout(() => ventPostMessage.classList.add('hidden'), 3000);
+                return;
+            }
+
+            ventPostLoading.classList.remove('hidden');
+            postVentBtn.disabled = true;
+            ventPostMessage.classList.add('hidden');
+
+            try {
+                // Ensure currentUserId is available for public data path
+                const userIdForPath = currentUserId || 'anonymous';
+                const ventsCollectionRef = collection(db, `artifacts/${appId}/public/data/vents`);
+
+                await addDoc(ventsCollectionRef, {
+                    text: ventText,
+                    timestamp: new Date(), // Firestore uses server timestamps automatically if you use FieldValue.serverTimestamp() but new Date() works for simple cases
+                    supportCount: 0,
+                    supportedBy: [] // Array to store UIDs of users who supported
+                });
+
+                ventInput.value = ''; // Clear input
+                ventPostMessage.textContent = "Vent posted successfully!";
+                ventPostMessage.classList.remove('hidden');
+                ventPostMessage.style.color = 'lightgreen';
+                setTimeout(() => ventPostMessage.classList.add('hidden'), 3000);
+
+            } catch (error) {
+                console.error("Error posting vent:", error);
+                ventPostMessage.textContent = "Failed to post vent. Please try again.";
+                ventPostMessage.classList.remove('hidden');
+                ventPostMessage.style.color = 'red';
+            } finally {
+                ventPostLoading.classList.add('hidden');
+                postVentBtn.disabled = false;
+            }
+        }
+
+        async function toggleSupport(ventId, currentSupportedBy) {
+            if (!isAuthReady || !db || !currentUserId) {
+                console.warn("Cannot support: Firebase not ready or user not authenticated.");
+                return;
+            }
+
+            const ventRef = doc(db, `artifacts/${appId}/public/data/vents/${ventId}`);
+
+            // Check if the current user has already supported this vent
+            if (currentSupportedBy.includes(currentUserId)) {
+                // Optionally, allow un-supporting, but for simplicity, we'll just prevent re-supporting
+                console.log("User already supported this vent.");
+                return;
+            }
+
+            try {
+                await updateDoc(ventRef, {
+                    supportCount: (currentSupportedBy.length || 0) + 1, // Increment count
+                    supportedBy: arrayUnion(currentUserId) // Add user ID to array
+                });
+                console.log(`Supported vent ${ventId}`);
+            } catch (error) {
+                console.error("Error supporting vent:", error);
+            }
+        }
+
+        function setupVentsListener() {
+            if (!isAuthReady || !db) {
+                console.warn("Firestore not ready for listening to vents.");
+                return;
+            }
+
+            const ventsCollectionRef = collection(db, `artifacts/${appId}/public/data/vents`);
+            const q = query(ventsCollectionRef, orderBy('timestamp', 'desc')); // Order by newest first
+
+            onSnapshot(q, (snapshot) => {
+                ventsDisplayArea.innerHTML = ''; // Clear current display
+                if (snapshot.empty) {
+                    noVentsMessage.classList.remove('hidden');
+                    ventsDisplayArea.appendChild(noVentsMessage);
+                    return;
+                }
+                noVentsMessage.classList.add('hidden'); // Hide "no vents" message
+
+                snapshot.forEach(doc => {
+                    const ventData = doc.data();
+                    const ventId = doc.id;
+                    const ventText = ventData.text;
+                    const supportCount = ventData.supportCount || 0;
+                    const supportedBy = ventData.supportedBy || [];
+                    const timestamp = ventData.timestamp ? ventData.timestamp.toDate().toLocaleString() : 'Just now';
+
+                    const ventCard = document.createElement('div');
+                    ventCard.classList.add('vent-card', 'w-full', 'mb-4'); // Tailwind classes
+
+                    const supportButtonDisabled = supportedBy.includes(currentUserId);
+
+                    ventCard.innerHTML = `
+                        <p class="text-gray-100 mb-2">${ventText}</p>
+                        <div class="flex justify-between items-center text-gray-400 text-xs">
+                            <span>Posted: ${timestamp}</span>
+                            <button class="support-btn ${supportButtonDisabled ? 'disabled' : ''}"
+                                data-vent-id="${ventId}"
+                                data-supported-by='${JSON.stringify(supportedBy)}'
+                                ${supportButtonDisabled ? 'disabled' : ''}>
+                                ❤️ Support (${supportCount})
+                            </button>
+                        </div>
+                    `;
+                    ventsDisplayArea.appendChild(ventCard);
+                });
+
+                // Add event listeners to newly created support buttons
+                ventsDisplayArea.querySelectorAll('.support-btn').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const ventId = event.target.dataset.ventId;
+                        const supportedBy = JSON.parse(event.target.dataset.supportedBy);
+                        toggleSupport(ventId, supportedBy);
+                    });
+                });
+            }, (error) => {
+                console.error("Error listening to vents:", error);
+                ventsDisplayArea.innerHTML = `<p class="text-red-400 text-center">Error loading vents. Please try again.</p>`;
+            });
+        }
+
+
+        // --- Event Listeners and Initial Setup ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Firebase first
+            initializeFirebase();
 
             // Set initial tab to home
             showTab('home');
 
             // Add event listeners for tab buttons
             homeTabBtn.addEventListener('click', () => showTab('home'));
-            gameSuggestorTabBtn.addEventListener('click', () => showTab('gameSuggestor')); // Renamed and updated tabId
+            gameSuggestorTabBtn.addEventListener('click', () => showTab('gameSuggestor'));
+            ventingTabBtn.addEventListener('click', () => showTab('venting')); // New tab button listener
 
-
-            // --- Dynamic Starfield Generation (for cosmicBanner only) ---
-            function createStars(numStars) {
-                cosmicBanner.querySelectorAll('.star').forEach(star => star.remove()); // Clear existing stars
-
-                const bannerRect = cosmicBanner.getBoundingClientRect();
-                const bannerWidth = bannerRect.width;
-                const bannerHeight = bannerRect.height;
-
-                // Ensure banner has dimensions before creating stars
-                if (bannerWidth === 0 || bannerHeight === 0) {
-                    // If banner is hidden or has no size, wait and retry
-                    setTimeout(() => createStars(numStars), 200);
-                    return;
-                }
-
-                for (let i = 0; i < numStars; i++) {
-                    const star = document.createElement('div');
-                    star.classList.add('star');
-                    const size = Math.random() * 2 + 1;
-                    star.style.width = `${size}px`;
-                    star.style.height = `${size}px`;
-                    star.style.left = `${Math.random() * 100}%`;
-                    star.style.top = `${Math.random() * 100}%`;
-                    star.style.animationDelay = `${Math.random() * 4}s`;
-                    cosmicBanner.appendChild(star);
-                }
-            }
-
-            // Re-generate stars on window resize to maintain density on the banner
+            // Re-generate stars on window resize (only if banner is visible)
             window.addEventListener('resize', () => {
-                if (cosmicBanner.style.display === 'flex') { // Only recreate if banner is visible
+                if (cosmicBanner.style.display === 'flex') {
                     createStars(200);
                 }
             });
 
-
-            // --- Gemini API Call for Cosmic Quotes ---
-            generateQuoteBtn.addEventListener('click', async () => {
-                quoteDisplay.textContent = '';
-                loadingIndicator.classList.remove('hidden');
-                generateQuoteBtn.disabled = true;
-
-                try {
-                    let chatHistory = [];
-                    const prompt = "Generate a short, inspiring quote about space, stars, exploration, or the cosmos. Make it poetic and philosophical. Do not include who said the quote.";
-                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-
-                    const payload = { contents: chatHistory };
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
-
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    const result = await response.json();
-
-                    if (!response.ok) {
-                        const errorMessage = result.error?.message || `HTTP Error: ${response.status} ${response.statusText}`;
-                        quoteDisplay.textContent = `API Error: ${errorMessage}. Please check your API key or request.`;
-                        console.error("Gemini API HTTP Error:", response.status, response.statusText, result);
-                        return;
-                    }
-
-                    if (result.error) {
-                        const errorMessage = result.error.message || 'Unknown API error in payload.';
-                        quoteDisplay.textContent = `API Error: ${errorMessage}.`;
-                        console.error("Gemini API returned error payload:", result.error);
-                        return;
-                    }
-
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
-                        const text = result.candidates[0].content.parts[0].text;
-                        quoteDisplay.textContent = text;
-                    } else {
-                        quoteDisplay.textContent = "Failed to generate quote. Unexpected API response content.";
-                        console.error("Gemini API response content structure unexpected:", result);
-                    }
-                } catch (error) {
-                    quoteDisplay.textContent = "Error generating quote. Please check your connection or console for details.";
-                    console.error("Error calling or parsing Gemini API response:", error);
-                } finally {
-                    loadingIndicator.classList.add('hidden');
-                    generateQuoteBtn.disabled = false;
-                }
-            });
-
-
-            // --- Gemini API Call for Game Suggestion ---
-            suggestGameBtn.addEventListener('click', async () => { // Renamed listener
-                gameSuggestionDisplay.textContent = ''; // Renamed display element
-                gameSuggestionLoadingIndicator.classList.remove('hidden'); // Renamed loading indicator
-                suggestGameBtn.disabled = true; // Renamed button
-
-                try {
-                    let chatHistory = [];
-                    const prompt = `Suggest a fun game or a creative in-game challenge suitable for a small, cozy gaming Discord group. Make the suggestion concise and engaging, like: "Your next mission: [Game/Challenge]!" or "Tonight's pick: [Game/Activity] - [Brief Fun Description]."`;
-                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-
-                    const payload = { contents: chatHistory };
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
-
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    const result = await response.json();
-
-                    if (!response.ok) {
-                        const errorMessage = result.error?.message || `HTTP Error: ${response.status} ${response.statusText}`;
-                        gameSuggestionDisplay.textContent = `API Error: ${errorMessage}. Please check your API key or request.`;
-                        console.error("Gemini API HTTP Error:", response.status, response.statusText, result);
-                        return;
-                    }
-
-                    if (result.error) {
-                        const errorMessage = result.error.message || 'Unknown API error in payload.';
-                        gameSuggestionDisplay.textContent = `API Error: ${errorMessage}.`;
-                        console.error("Gemini API returned error payload:", result.error);
-                        return;
-                    }
-
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
-                        const text = result.candidates[0].content.parts[0].text;
-                        gameSuggestionDisplay.textContent = text; // Renamed display element
-                    } else {
-                        gameSuggestionDisplay.textContent = "Failed to generate suggestion. Unexpected API response content.";
-                        console.error("Gemini API response content structure unexpected:", result);
-                    }
-                } catch (error) {
-                    gameSuggestionDisplay.textContent = "Error generating suggestion. Please check your connection or console for details.";
-                    console.error("Error calling or parsing Gemini API response for game suggestion:", error);
-                } finally {
-                    gameSuggestionLoadingIndicator.classList.add('hidden'); // Renamed loading indicator
-                    suggestGameBtn.disabled = false; // Renamed button
-                }
-            });
+            // Venting system button listener
+            postVentBtn.addEventListener('click', postVent);
         });
     </script>
 </body>
